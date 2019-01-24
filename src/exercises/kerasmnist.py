@@ -1,7 +1,9 @@
 from keras.datasets import mnist
+from time import time
 import matplotlib.pyplot as plt
 from keras.models import Sequential
 from keras.backend.tensorflow_backend import set_session
+from keras.callbacks import TensorBoard
 import keras.layers as nn_layers
 import numpy as np
 import tensorflow as tf
@@ -49,5 +51,7 @@ train_x,train_y = ntrain_x[randidx[10000:]],oh_trainy[randidx[10000:]]
 
 model = Sequential(layers_list)
 
+tensorboard=TensorBoard(log_dir="/tmp/tensorboard/{}".format(time()))
+
 model.compile(optimizer='adam', loss='categorical_crossentropy',metrics=['accuracy'])
-model.fit(train_x,train_y, validation_data=(val_x,val_y),epochs=3)
+model.fit(train_x,train_y,verbose=1, validation_data=(val_x,val_y),epochs=3,callbacks=[tensorboard])

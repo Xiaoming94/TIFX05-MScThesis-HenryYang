@@ -1,8 +1,16 @@
 from keras.datasets import mnist
 import matplotlib.pyplot as plt
 from keras.models import Sequential
+from keras.backend.tensorflow_backend import set_session
 import keras.layers as nn_layers
 import numpy as np
+import tensorflow as tf
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+set_session(sess)
+
 
 def process_data(data_x, data_y):
     # Normalize the data

@@ -4,6 +4,11 @@ Author: Henry Yang
 
 This file is a Keras example i implemented on my own
 Without following any guide, just as en exercise to understand keras
+
+Contains toy datapoints that are samples from a Henon map where positives are directly from the map
+and the negatives are basically the henon map shifted down and flipped around the Y-axis
+
+This toy exercise file also contains examples of using custom loss functions
 '''
 
 import tensorflow as tf

@@ -53,7 +53,7 @@ def process_data(data_x, data_y):
     return ndata_x,labels_y
     
 ## LOADING THE MNIST DATA
-(x_train,y_train),(x_test,y_tesst) = mnist.load_data()
+(x_train,y_train),(x_test,y_test) = mnist.load_data()
 
 ## RESHAPING THE DATA to suitable forms for the CNN
 x_train = x_train.reshape(60000,28,28,1)
@@ -86,4 +86,14 @@ model = Sequential(layers_list)
 tensorboard=TensorBoard(log_dir="/tmp/tensorboard/{}".format(time()))
 
 model.compile(optimizer='adam', loss='categorical_crossentropy',metrics=['accuracy'])
-model.fit(train_x,train_y,verbose=1, validation_data=(val_x,val_y),epochs=10,callbacks=[tensorboard])
+model.fit(train_x,train_y,verbose=1, validation_data=(val_x,val_y),epochs=5,callbacks=[tensorboard])
+
+## Testing the Model
+
+ntest_x,test_y = process_data(x_test,y_test)
+predictions = model.predict(ntest_x)
+
+correct = np.equal(np.argmax(predictions,1),np.argmax(test_y,1))
+accuracy = np.mean(correct)
+
+print("The Accuracy on the Test set is: %s" % accuracy)

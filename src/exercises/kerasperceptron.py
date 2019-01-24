@@ -76,8 +76,8 @@ print("Start creating neural Network")
 setup_keras()
 
 network_layers = [
-    nn_layers.Dense(64,input_shape=(2,),activation="tanh"),
-    nn_layers.Dense(32,activation="tanh"),
+    nn_layers.Dense(64,input_shape=(2,),activation="relu"),
+    nn_layers.Dense(32,activation="relu"),
     nn_layers.Dense(1,activation="tanh")
 ]
 

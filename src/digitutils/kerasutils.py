@@ -13,6 +13,7 @@ def setup_gpu_session(growth = True):
     """
     Function that setups Keras to work with the GPU growth
     Can be used to configure GPU growth
+    growth -- boolean value, default to true, set if gpu_growth should be allowed in tensorflow
     """
     cfg = tf.ConfigProto()
     cfg.gpu_options.allow_growth = growth

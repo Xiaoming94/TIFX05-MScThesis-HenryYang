@@ -1,8 +1,6 @@
 import os
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from keras.datasets import mnist
 
 def resize_image(img):
     (h,w) = img.shape
@@ -67,12 +65,3 @@ def load_images(img_dir_path):
 
 imagepath = os.path.join(".","images","60 Images")
 imgs = load_images(imagepath)
-
-(X_train,y_train),(x_test,y_test) = mnist.load_data()
-
-plt.figure()
-plt.imshow(imgs[10])
-plt.figure()
-plt.imshow(X_train[3])
-plt.show()
-

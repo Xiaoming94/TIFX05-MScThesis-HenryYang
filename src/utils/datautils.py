@@ -16,3 +16,19 @@ def normalize(data):
     return normalized_data
 
 def create_one_hot(labels):
+    """
+    This function creates one-hot encoded vectors of integer valued labels for number classification.
+
+    Parameters:
+    labels (np.array(int)):  Integer labels of the handwritten digits
+
+    returns:
+    A matrix of one-hot encoded vectors
+    """
+
+    num_labels = labels.size
+    m_onehot = np.zeros([num_labels,10])
+    for (i,t) in zip(list(range(num_labels)),labels):
+        m_onehot[i,t] = 1
+    
+    return m_onehot

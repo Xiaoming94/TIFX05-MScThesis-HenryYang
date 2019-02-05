@@ -10,6 +10,7 @@ This file is assuming that the number is written on a white background only
 import os
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 def resize_image(img):
     """
@@ -66,15 +67,14 @@ def unpad_img(img):
 def load_images(img_dir_path):
     images = os.listdir(img_dir_path)
     img_vec_list = []
+    labels = []
     for img in images:
         img_arr = cv2.imread(os.path.join(img_dir_path,img), 0)
         img_arr = cv2.bitwise_not(img_arr)
         img_arr = unpad_img(img_arr)
         img_arr = resize_image(img_arr)
         img_processed = center_box_image(img_arr)
-        img_vec_list.append(img_processed)
-
-    return img_vec_list
-
-imagepath = os.path.join(".","images","60 Images")
-imgs = load_images(imagepath)
+        img_vec_list.append(img_processed.flatten())
+        labels.append(int(img[0]))
+    
+    return img_vec_list, labels

@@ -1,10 +1,23 @@
+'''
+processimage.py
+
+Author: Henry Yang (XiaoMing)
+
+This is the file containing utility functions for processing handwritten digits into numerical numpy arrays
+This file is assuming that the number is written on a white background only
+'''
+
 import os
 import cv2
 import numpy as np
 
 def resize_image(img):
-    (h,w) = img.shape
-    rf = 20/max(h,w)
+    """
+    Resizes an image to fit in a 20x20 box
+    img -- a numpy array of the image
+    """
+    (h, w) = img.shape
+    rf = 20/max(h, w)
     img_resized = cv2.resize(img,None,fx=rf,fy=rf,interpolation = cv2.INTER_CUBIC)
     return img_resized
 

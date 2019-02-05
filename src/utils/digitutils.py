@@ -77,4 +77,4 @@ def load_images(img_dir_path):
         img_vec_list.append(img_processed.flatten())
         labels.append(int(img[0]))
     
-    return img_vec_list, labels
+    return np.array(img_vec_list), np.array(labels, dtype=np.int)

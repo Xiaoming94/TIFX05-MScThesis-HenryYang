@@ -15,7 +15,12 @@ import matplotlib.pyplot as plt
 def resize_image(img):
     """
     Resizes an image to fit in a 20x20 box
-    img -- a numpy array of the image
+    
+    Parameter:
+    img (np.array) : 
+
+    Returns:
+    return a numpy array that represents the resized image
     """
     (h, w) = img.shape
     rf = 20/max(h, w)

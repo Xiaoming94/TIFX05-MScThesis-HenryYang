@@ -46,7 +46,7 @@ model = Sequential(layers_list)
 
 tensorboard=TensorBoard(log_dir="/tmp/tensorboard/{}".format(time()))
 
-model.compile(optimizer='sgd', loss='categorical_crossentropy',metrics=['accuracy'])
+model.compile(optimizer='adam', loss='categorical_crossentropy',metrics=['accuracy'])
 model.fit(train_x,train_y,verbose=1, validation_data=(val_x,val_y),epochs=5, callbacks=[tensorboard])
 
 ## Testing the Model

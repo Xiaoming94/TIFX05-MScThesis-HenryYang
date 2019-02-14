@@ -11,6 +11,7 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import functools
 
 def resize_image(img):
     """
@@ -69,17 +70,30 @@ def unpad_img(img):
     img = np.delete(img, idx, axis=1)
     return img
 
+def load_image(img_path):
+    img = cv2.imread(img_path, 0)
+    img = cv2.bitwise_not(img)
+    return img
+
+def load_image_data(img_dir_path, radius=0, unpad=True):
+    img_list, labels = load_images(img_dir_path)
+    if (radius != 0):
+        ## Change the Linewidth
+        print("not implemented")
+    if (unpad):
+        img_list = list(map(unpad_img, img_list))
+    
+    img_list = list(map(
+        lambda img: center_box_image(resize_image(img)).flatten()
+    ,img_list))
+    return np.array(img_list), labels
+
 def load_images(img_dir_path):
     images = os.listdir(img_dir_path)
-    img_vec_list = []
+    img_list = []
     labels = []
     for img in images:
-        img_arr = cv2.imread(os.path.join(img_dir_path,img), 0)
-        img_arr = cv2.bitwise_not(img_arr)
-        img_arr = unpad_img(img_arr)
-        img_arr = resize_image(img_arr)
-        img_processed = center_box_image(img_arr)
-        img_vec_list.append(img_processed.flatten())
+        img_list.append(load_image(os.path.join(img_dir_path,img)))
         labels.append(int(img[0]))
     
-    return np.array(img_vec_list), np.array(labels, dtype=np.int)
+    return img_list, np.array(labels, dtype=np.int)

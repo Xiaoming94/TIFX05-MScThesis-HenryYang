@@ -10,7 +10,7 @@ import utils
 import numpy as np
 import matplotlib.pyplot as plt
 
-trials = 100
+trials = 5
 mnist_acc = np.zeros(trials)
 img_acc = np.zeros(trials)
 num_epochs = 5
@@ -27,7 +27,7 @@ utils.setup_gpu_session()
 
 path = os.path.join(".","images","60 Images")
 
-imgs,labels = utils.load_images(path)
+imgs,labels = utils.load_image_data(path)
 
 (x_train,y_train),(x_test,y_test) = mnist.load_data()
 

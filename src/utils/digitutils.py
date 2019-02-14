@@ -76,6 +76,29 @@ def load_image(img_path):
     return img
 
 def load_image_data(img_dir_path, radius=0, unpad=True):
+    """
+    Function that loades images of handwritten digits, applying preprocessing on them
+    and finally returns them as numpy arrays.
+
+    This function assumes that all images are placed in the directory specified by img_dir_path.
+    It also assumes that the file names are named as following: <number>_<idx>.png.
+    A third and final assumption is that the images have white background and black forground pixels
+
+    It loads the images and applies the preprocessing steps as discribed on the MNIST website
+
+    Parameter
+
+    img_dir_path (String or Path): Path to the directory where the images are
+    radius (integer): The linewidth change use for normalization. Set to 0 if nothing should be done about the images.
+    unpad (boolean): tells the function weather or not to unpad the original images before applying preprocessing
+
+    Returns:
+
+    img_list(np.array), labels(np.array)
+
+    The list of images as a 2d numpy array.
+    Array of labels for the images
+    """
     img_list, labels = load_images(img_dir_path)
     if (radius != 0):
         ## Change the Linewidth

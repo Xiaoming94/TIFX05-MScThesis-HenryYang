@@ -70,6 +70,34 @@ def unpad_img(img):
     img = np.delete(img, idx, axis=1)
     return img
 
+def change_linewidth(img, radius):
+    def find_new_pixval(img, x, y, radius):
+        (height,width) = img.shape
+        xstart = max(x - abs(radius), 0)
+        xend = min(x + abs(radius), width)
+        newpix = img[y,x]
+        for rx in range(xstart,xend):
+            dx = abs(rx - x) # Distance to X
+            dy_search = abs(radius) - dx
+            ystart = max(y - dy_search, 0)
+            yend = min(y + dy_search, height)
+            for ry in range(ystart,yend):
+                if radius < 0:
+                    newpix = min(img[ry,rx],newpix)
+                else:
+                    newpix = max(img[ry,rx],newpix)
+            
+        return newpix
+
+    (height,width) = img.shape
+    new_img = np.zeros([height,width])
+    for i in range(height):
+        for j in range(width):
+            new_img[i,j] = find_new_pixval(img,j,i,radius) 
+    
+    return new_img
+
+
 def load_image(img_path):
     img = cv2.imread(img_path, 0)
     img = cv2.bitwise_not(img)
@@ -101,8 +129,8 @@ def load_image_data(img_dir_path, radius=0, unpad=True):
     """
     img_list, labels = load_images(img_dir_path)
     if (radius != 0):
-        ## Change the Linewidth
-        print("not implemented")
+        img_list = list(map(lambda img: change_linewidth(img,radius), img_list))
+
     if (unpad):
         img_list = list(map(unpad_img, img_list))
     

@@ -47,7 +47,7 @@ def build_ensemble(net_configs, pop_per_type = 5, merge_type = None):
 
 def build_layer(layer_conf):
     ltype = layer_conf["type"]
-    neuron_units = layer_conf["units"]
+    neuron_units = layer_conf["units"] if "units" in layer_conf else None
     activation = layer_conf["activation"] if "activation" in layer_conf else None
     if ltype == "Dense":
         return nn_layers.Dense(neuron_units,activation=activation)
@@ -59,7 +59,7 @@ def build_layer(layer_conf):
         return nn_layers.BatchNormalization(axis=layer_conf["axis"])
     
     if ltype == "MaxPooling2D":
-        return nn_layers.MaxPooling2D(pool_size=layer_conf["pool_size"],strides=layer_conf["strides"])
+        return nn_layers.MaxPooling2D(pool_size=tuple(layer_conf["pool_size"]),strides=tuple(layer_conf["strides"]))
 
     if ltype == "Flatten":
         return nn_layers.Flatten()

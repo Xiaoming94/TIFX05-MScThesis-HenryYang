@@ -25,6 +25,26 @@ def build_layers(config):
     
     return input_layer, output_layer
 
+def build_ensemble(net_configs, pop_per_type = 5, merge_type = None):
+    
+    merge_layer = {
+        "Average" : nn_layers.Average()
+    }
+    
+    inputs = []
+    outputs = []
+    for net_conf in net_configs:
+        for i in range(pop_per_type):
+            il, ol = build_layers(net_conf)
+            inputs.append(il)
+            outputs.append(ol)
+    
+    train_model = Model(inputs=inputs, outputs=outputs)
+    merge_layer = merge_layer(merge_type) if merge_type != None else None
+    merge_model = Model(inputs=inputs, outputs=merge_layer) if merge_layer != None else None
+    model_list = [Model(inputs=il,outputs=ol) for il,ol in zip(inputs,outputs)]
+    return inputs, outputs, train_model, model_list, merge_model
+
 def build_layer(layer_conf):
     ltype = layer_conf["type"]
     neuron_units = layer_conf["units"]

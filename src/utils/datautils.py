@@ -1,4 +1,5 @@
 import numpy as np
+from keras.datasets import mnist
 
 def normalize(data):
     """
@@ -32,3 +33,10 @@ def create_one_hot(labels):
         m_onehot[i,t] = 1
     
     return m_onehot
+
+def load_mnist():
+    (xtrain,ytrain),(xtest,ytest) = mnist.load_data()
+    xtrain,xtest = normalize(xtrain),normalize(xtest)
+    ytrain,ytest = create_one_hot(ytrain),create_one_hot(ytest)
+
+    return xtrain,ytrain,xtest,ytest

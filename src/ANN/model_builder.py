@@ -59,7 +59,8 @@ def build_layer(layer_conf):
         return nn_layers.BatchNormalization(axis=layer_conf["axis"])
     
     if ltype == "MaxPooling2D":
-        return nn_layers.MaxPooling2D(pool_size=tuple(layer_conf["pool_size"]),strides=tuple(layer_conf["strides"]))
+        strides = tuple(layer_conf["strides"]) if type(layer_conf["strides"]) is list else layer_conf["strides"]
+        return nn_layers.MaxPooling2D(pool_size=tuple(layer_conf["pool_size"]),strides=strides)
 
     if ltype == "Flatten":
         return nn_layers.Flatten()

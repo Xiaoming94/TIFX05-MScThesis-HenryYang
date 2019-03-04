@@ -48,16 +48,9 @@ xtrain,ytrain,xtest,ytest = utils.load_mnist()
 xtrain = xtrain.reshape(60000,28,28,1)
 xtest = xtest.reshape(10000,28,28,1)
 
-#model = ann.parse_model_js(network_model1)
-
-#model.compile(optimizer="adam", loss=ann.adveserial_loss(klosses.categorical_crossentropy,model,model.inputs), metrics=["accuracy"])
-#model.fit(xtrain,ytrain,verbose=1,validation_data=(xtest,ytest),epochs=3)
-#print("SCRIPT RUN SUCCÈSSFUL")
 
 model_conf = json.loads(network_model1)
-
 inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([model_conf])
-
 ensemble_size = len(model_list)
 
 

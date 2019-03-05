@@ -12,8 +12,9 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import functools
+from multiprocessing import Pool
 
-def resize_image(img):
+def resize_image(img, side=20):
     """
     Resizes an image to fit in a 20x20 box
     
@@ -24,7 +25,7 @@ def resize_image(img):
     return a numpy array that represents the resized image
     """
     (h, w) = img.shape
-    rf = 20/max(h, w)
+    rf = side/max(h, w)
     img_resized = cv2.resize(img,None,fx=rf,fy=rf,interpolation = cv2.INTER_CUBIC)
     return img_resized
 
@@ -43,12 +44,12 @@ def get_center_coord(img):
 
     return cm_x,cm_y
 
-def center_box_image(img):
+def center_box_image(img, side=20, padding=4):
     cm_x, cm_y = get_center_coord(img)
     centered_img = center_image_small(img,cm_x,cm_y)
-    img_box = np.zeros([28,28])
-    for i in range(20):
-        for j in range(20):
+    img_box = np.zeros([side + (2 * padding),side + (2 * padding)])
+    for i in range(side):
+        for j in range(side):
             img_box[i+4,j+4] = centered_img[i,j]
 
     return img_box
@@ -96,14 +97,28 @@ def change_linewidth(img, radius):
             new_img[i,j] = find_new_pixval(img,j,i,radius) 
     
     return new_img
+def intern_calc_linewidth(img):
+    thickened = change_linewidth(img,1)
+    thinned = change_linewidth(img,-1)
+    gradient = thickened - thinned
+    sumthick = np.sum(thickened)
+    sumgrad = np.sum(gradient)
+    return 2 * sumthick/sumgrad
 
+def calc_linewidth(imgs):
+
+    tau = 0
+    with Pool(4) as p:
+        thicknesses = np.array(p.map(intern_calc_linewidth,imgs))
+        tau = np.mean(thicknesses)
+    return tau
 
 def load_image(img_path):
     img = cv2.imread(img_path, 0)
     img = cv2.bitwise_not(img)
     return img
 
-def load_image_data(img_dir_path, radius=0, unpad=True):
+def load_image_data(img_dir_path, side=20, padding=4, unpad=True):
     """
     Function that loades images of handwritten digits, applying preprocessing on them
     and finally returns them as numpy arrays.
@@ -128,14 +143,12 @@ def load_image_data(img_dir_path, radius=0, unpad=True):
     Array of labels for the images
     """
     img_list, labels = load_images(img_dir_path)
-    if (radius != 0):
-        img_list = list(map(lambda img: change_linewidth(img,radius), img_list))
 
     if (unpad):
         img_list = list(map(unpad_img, img_list))
     
     img_list = list(map(
-        lambda img: center_box_image(resize_image(img)).flatten()
+        lambda img: center_box_image(resize_image(img, side), side, padding).flatten()
     ,img_list))
     return np.array(img_list), labels
 

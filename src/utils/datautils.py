@@ -34,9 +34,18 @@ def create_one_hot(labels):
     
     return m_onehot
 
-def load_mnist():
+def load_mnist(normalize = True):
     (xtrain,ytrain),(xtest,ytest) = mnist.load_data()
-    xtrain,xtest = normalize(xtrain),normalize(xtest)
+    if normalize:
+        xtrain,xtest = normalize(xtrain),normalize(xtest)
     ytrain,ytest = create_one_hot(ytrain),create_one_hot(ytest)
 
     return xtrain,ytrain,xtest,ytest
+
+def create_validation(data,labels,validation_ratio=0.1):
+    data_size = data.shape[0]
+    n_valdata = int(data_size * validation_ratio)
+    randperm = np.random.permutation(data_size)
+    val_data, val_labels = data[randperm[0:n_valdata]], labels[randperm[0:n_valdata]]
+    train_data, train_labels = data[randperm[n_valdata:]], labels[randperm[n_valdata:]]
+    return train_data, train_labels, val_data, val_labels

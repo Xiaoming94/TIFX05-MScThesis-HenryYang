@@ -1,7 +1,7 @@
 import numpy as np
 from keras.datasets import mnist
 
-def normalize(data):
+def normalize_data(data):
     """
     This function normalizes the input data between 0 and 1 and center the data around origin
     Assumes that the data points consist of integers between 0 and 255
@@ -37,7 +37,7 @@ def create_one_hot(labels):
 def load_mnist(normalize = True):
     (xtrain,ytrain),(xtest,ytest) = mnist.load_data()
     if normalize:
-        xtrain,xtest = normalize(xtrain),normalize(xtest)
+        xtrain,xtest = normalize_data(xtrain),normalize_data(xtest)
     ytrain,ytest = create_one_hot(ytrain),create_one_hot(ytest)
 
     return xtrain,ytrain,xtest,ytest

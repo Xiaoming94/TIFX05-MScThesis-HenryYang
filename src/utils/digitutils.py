@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import functools
 from multiprocessing import Pool
 
-def resize_image(img, side=20):
+def resize_image(img, side):
     """
     Resizes an image to fit in a 20x20 box
     
@@ -44,24 +44,24 @@ def get_center_coord(img):
 
     return cm_x,cm_y
 
-def center_box_image(img, side=20, padding=4):
+def center_box_image(img, side, padding):
     cm_x, cm_y = get_center_coord(img)
-    centered_img = center_image_small(img,cm_x,cm_y)
+    centered_img = center_image_small(img,cm_x,cm_y,side)
     img_box = np.zeros([side + (2 * padding),side + (2 * padding)])
     for i in range(side):
         for j in range(side):
-            img_box[i+4,j+4] = centered_img[i,j]
+            img_box[i+padding,j+padding] = centered_img[i,j]
 
     return img_box
 
-def center_image_small(img,cm_x,cm_y):
-    shift_x = 10 - cm_x
-    shift_y = 10 - cm_y
-    img_box = np.zeros([20,20])
+def center_image_small(img,cm_x,cm_y,side):
+    shift_x = int((side/2) - cm_x)
+    shift_y = int((side/2) - cm_y)
+    img_box = np.zeros([side,side])
     (h,w) = img.shape
     for i in range(h):
         for j in range(w):
-            img_box[(i + shift_y) % 20, (j + shift_x) % 20] = img[i,j]
+            img_box[(i + shift_y) % side, (j + shift_x) % side] = img[i,j]
 
     return img_box
 
@@ -148,7 +148,7 @@ def load_image_data(img_dir_path, side=20, padding=4, unpad=True):
         img_list = list(map(unpad_img, img_list))
     
     img_list = list(map(
-        lambda img: center_box_image(resize_image(img, side), side, padding).flatten()
+        lambda img: center_box_image(resize_image(img, side), side, padding)
     ,img_list))
     return np.array(img_list), labels
 

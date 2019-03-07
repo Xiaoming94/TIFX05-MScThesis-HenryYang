@@ -108,7 +108,7 @@ def intern_calc_linewidth(img):
 def calc_linewidth(imgs):
 
     tau = 0
-    with Pool(4) as p:
+    with Pool(6) as p:
         thicknesses = np.array(p.map(intern_calc_linewidth,imgs))
         tau = np.mean(thicknesses)
     return tau

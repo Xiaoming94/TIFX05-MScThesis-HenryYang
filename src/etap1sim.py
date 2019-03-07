@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 import ANN as ann
 
 
-trials = 5
+trials = 20
 mnist_acc = np.zeros(trials)
 imgXM_acc = np.zeros(trials)
 imgOB_acc = np.zeros(trials)
 combined_acc = np.zeros(trials)
-num_epochs = 3
+num_epochs = 4
 
 network_model = """
 {
@@ -26,6 +26,16 @@ network_model = """
         {
             "type" : "Conv2D",
             "units" : 32,
+            "kernel_size" : [3,3],
+            "activation" : "relu"
+        },
+        {
+            "type" : "BatchNormalization",
+            "axis" : -1
+        },
+         {
+            "type" : "Conv2D",
+            "units" : 64,
             "kernel_size" : [3,3],
             "activation" : "relu"
         },
@@ -43,7 +53,7 @@ network_model = """
         },
         {
             "type" : "Dense",
-            "units" : 16,
+            "units" : 32,
             "activation" : "relu"
         },
         {
@@ -88,7 +98,7 @@ for i in range(trials):
     t_xtrain,t_ytrain,xval,yval = utils.create_validation(xtrain,ytrain)
 
     
-
+    print("starting trial %s" % (i+1))
     ## Realizing and training the data
     ## uses TensorBoard to monitor the progress
     model = ann.parse_model_js(network_model)
@@ -127,13 +137,13 @@ plt.xlabel("trials")
 plt.ylabel("accuracy")
 mnist_line, = plt.plot(Xaxis, imgOB_acc,color="blue",marker="x",linestyle="-")
 mnist_avg_line, = plt.plot(Xaxis, np.ones(trials) * np.mean(imgOB_acc), color="red",linestyle="--")
-plt.legend((mnist_line, mnist_avg_line),("MNIST Accuracy", "MNIST Average Accuracy"))
+plt.legend((mnist_line, mnist_avg_line),("Oleksandr's Digits Accuracy", "Oleksandr's Average Accuracy"))
 plt.subplot(2,1,2)
 plt.title("accuracy test of Henry's Digits")
 plt.xlabel("trials")
 plt.ylabel("accuracy")
 imgs_line, = plt.plot(Xaxis, imgXM_acc,color="blue",marker="x",linestyle="-")
 imgs_avg_line, = plt.plot(Xaxis, np.ones(trials) * np.mean(imgXM_acc), color="red",linestyle="--")
-plt.legend((imgs_line, imgs_avg_line), ("IMGS Accuracy", "IMGS Average Accuracy"))
+plt.legend((imgs_line, imgs_avg_line), ("Henry's Digits Accuracy", "Henry's Average Accuracy"))
 
 plt.show()

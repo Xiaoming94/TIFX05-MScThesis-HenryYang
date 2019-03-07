@@ -57,6 +57,3 @@ ensemble_size = len(model_list)
 lossfunctions = [ann.adveserial_loss(klosses.categorical_crossentropy, m) for m in model_list]
 train_model.compile(optimizer="adam",loss=lossfunctions ,metrics=["accuracy"])
 train_model.fit([xtrain]*ensemble_size,[ytrain]*ensemble_size,verbose=1,validation_data=([xtest]*ensemble_size,[ytest]*ensemble_size),epochs=3)
-
-
-

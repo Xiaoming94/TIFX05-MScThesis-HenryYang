@@ -48,16 +48,12 @@ network_model1 = """
 """
 
 def resize_helper(img):
-    sides = 400
+    sides = 560
     return cv2.resize(img, (sides,sides))
 
-xtrain, ytrain, xtest, ytest = utils.load_mnist(normalize=False)
-xtrain = xtrain.reshape(60000, 28, 28,1)
-xtest = xtest.reshape(10000, 28, 28,1)
-xtrain, ytrain, xval, yval = utils.create_validation(xtrain,ytrain,1/6)
-
+xtrain, ytrain, xtest, ytest = utils.load_mnist()
 mnist_total = np.concatenate((xtrain,xtest))
-chunksize = 10000
+chunksize = 500
 partitions = int(mnist_total.shape[0]/chunksize)
 taus = []
 

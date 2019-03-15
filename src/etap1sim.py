@@ -1,7 +1,3 @@
-import keras.layers as nn_layers
-from keras.models import Sequential
-from keras.datasets import mnist
-from keras.callbacks import TensorBoard
 import tensorflow as tf
 import os
 from time import time

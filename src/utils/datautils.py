@@ -1,5 +1,7 @@
 import numpy as np
 from keras.datasets import mnist
+import pickle
+import os
 
 def normalize_data(data):
     """
@@ -49,3 +51,17 @@ def create_validation(data,labels,validation_ratio=0.1):
     val_data, val_labels = data[randperm[0:n_valdata]], labels[randperm[0:n_valdata]]
     train_data, train_labels = data[randperm[n_valdata:]], labels[randperm[n_valdata:]]
     return train_data, train_labels, val_data, val_labels
+
+def pickle_filepath_str(name):
+    if not os.path.isdir(os.path.join(".","data")):
+        os.mkdir(os.path.join(".","data"))
+    return os.path.join(".","data",name + ".pickle")
+
+def save_processed_data(dig_dict, name):
+    full_filename = pickle_filepath_str(name)
+    with open(full_filename, 'wb+') as fhandle:
+        pickle.dump(dig_dict, fhandle, protocol=pickle.HIGHEST_PROTOCOL)
+
+def load_processed_data(name):
+    with open(pickle_filepath_str(name), 'rb') as fhandle:
+        return pickle.load(fhandle)

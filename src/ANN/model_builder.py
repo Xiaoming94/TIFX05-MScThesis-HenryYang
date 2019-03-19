@@ -27,7 +27,7 @@ def build_layers(config):
 
 def build_ensemble(net_configs, pop_per_type = 5, merge_type = None):
     
-    merge_layer = {
+    merge_layers = {
         "Average" : nn_layers.Average()
     }
     
@@ -35,13 +35,13 @@ def build_ensemble(net_configs, pop_per_type = 5, merge_type = None):
     outputs = []
     for net_conf in net_configs:
         for i in range(pop_per_type):
-            il, ol = build_layers(net_conf)
+            il, ol = build_layers(json.loads(net_conf))
             inputs.append(il)
             outputs.append(ol)
     
     train_model = Model(inputs=inputs, outputs=outputs)
-    merge_layer = merge_layer(merge_type) if merge_type != None else None
-    merge_model = Model(inputs=inputs, outputs=merge_layer) if merge_layer != None else None
+    merge_layer = merge_layers[merge_type] if merge_type != None else None
+    merge_model = Model(inputs=inputs, outputs=merge_layer(outputs)) if merge_layer != None else None
     model_list = [Model(inputs=il,outputs=ol) for il,ol in zip(inputs,outputs)]
     return inputs, outputs, train_model, model_list, merge_model
 

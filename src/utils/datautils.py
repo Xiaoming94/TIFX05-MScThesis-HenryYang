@@ -65,3 +65,43 @@ def save_processed_data(dig_dict, name):
 def load_processed_data(name):
     with open(pickle_filepath_str(name), 'rb') as fhandle:
         return pickle.load(fhandle)
+
+def calc_henon(x0,y0,steps,a=1.4, b=0.3):
+    x_vec = np.zeros(3+steps)
+    y_vec = np.zeros(3+steps)
+
+    x = x0
+    y = y0
+
+    for t in range(3+steps):
+        x_vec[t] = x
+        y_vec[t] = y
+        xn = 1 - a * x * x + y
+        yn = b * x
+        x = xn
+        y = yn
+
+    return x_vec[3:], y_vec[3:]
+
+
+def henon_map_data(count=60000, testsize=10000 ,ratio=0.5):
+    pos_size = int(count * ratio)
+    neg_size = count - pos_size
+
+    hx,hy = calc_henon(0,0,pos_size)
+    pos_data = np.transpose(np.array([hx,hy]))
+    neg_data = np.transpose(np.array([-hx,hy-0.2]))
+
+    ran_indices = np.random.permutation(int(count*ratio))
+    test_pos_data = pos_data[ran_indices[0:int(testsize * ratio)]]
+    test_neg_data = neg_data[ran_indices[0:int(testsize * ratio)]]
+    train_pos_data = pos_data[ran_indices[int(testsize * ratio):]]
+    train_neg_data = neg_data[ran_indices[int(testsize * ratio):]]
+    
+    Xtrain = np.concatenate([train_pos_data,train_neg_data],axis=0)
+    Xtest = np.concatenate([test_pos_data,test_neg_data],axis=0)
+    Ytrain = np.zeros(count-testsize) - 1
+    Ytrain[0:int((count-testsize)*ratio)] = 1
+    Ytest = np.zeros(testsize) - 1
+    Ytest[0:int(testsize * ratio)] = 1
+    return Xtrain, Ytrain, Xtest, Ytest

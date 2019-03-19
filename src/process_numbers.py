@@ -53,6 +53,9 @@ data_xm = build_thickness_data(xm_digits,mnist_linethickness)
 data_ob = build_thickness_data(ob_digits,mnist_linethickness)
 data_comb = build_thickness_data(combined_data, mnist_linethickness)
 
+data_xm["labels"] = xm_labels
+data_ob["labels"] = ob_labels
+
 print("===== SAVING DATA TO DISK =====")
 
 utils.save_processed_data(data_xm, "xiaoming_digits")

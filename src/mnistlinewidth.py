@@ -2,7 +2,6 @@ import utils
 import numpy as np
 from matplotlib import pyplot as plt
 import os
-import ANN as ann
 import cv2
 from multiprocessing import Pool
 
@@ -48,22 +47,23 @@ network_model1 = """
 """
 
 def resize_helper(img):
-    sides = 560
+    sides = 400
     return cv2.resize(img, (sides,sides))
 
 xtrain, ytrain, xtest, ytest = utils.load_mnist()
 mnist_total = np.concatenate((xtrain,xtest))
-chunksize = 500
-partitions = int(mnist_total.shape[0]/chunksize)
+chunksize = 1000
+mnist_total_size = mnist_total.shape[0]
+partitions = int(mnist_total_size/chunksize)
 taus = []
 
 for i in range(partitions):
     print("Starting Loop")
-    with Pool(4) as p:
+    with Pool(6) as p:
         mnist_batch = mnist_total[i*chunksize:(i+1)*chunksize]
         mnist_batch_big = np.array(p.map(resize_helper, mnist_batch))
 
     taus.append(utils.calc_linewidth(mnist_batch_big))
-    print("Calculated Line width of %s Digits" % ((i+1) * chunksize))
+    print("Calculated Line width of %s Digits of %s" % ((i+1) * chunksize, mnist_total_size))
 
 print(np.mean(taus))

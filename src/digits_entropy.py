@@ -3,9 +3,10 @@ import ANN as ann
 import numpy as np
 from keras import losses as klosses
 from functools import reduce
+import matplotlib.pyplot as plt
 
-ensemble_sizes = list(range(3,6))
-num_epochs = 3
+ensemble_sizes = list(range(3,21))
+num_epochs = 5
 
 mlp_structure = '''
 {
@@ -75,6 +76,33 @@ convnet_structure = '''
     ]
 }
 '''
+def make_plots(mnist_results, ob_results, xm_results, fig_title):
+    fig = plt.figure()
+    fig.suptitle(fig_title)
+    plt.subplot(311)
+    line1, = plt.plot(ensemble_sizes,mnist_results["c_error"])
+    line2, = plt.plot(ensemble_sizes,xm_results["c_error"])
+    line3, = plt.plot(ensemble_sizes,ob_results["c_error"])
+    plt.xlabel("ensemble size")
+    plt.ylabel("classification error")
+    plt.legend((line1,line2,line3),("MNIST Digits","Henry's Digits","Olek's Digits"))
+
+    plt.subplot(312)
+    line1, = plt.plot(ensemble_sizes,mnist_results["pred_bits"])
+    line2, = plt.plot(ensemble_sizes,xm_results["pred_bits"])
+    line3, = plt.plot(ensemble_sizes,ob_results["pred_bits"])
+    plt.xlabel("ensemble size")
+    plt.ylabel("Prediciton entropy (bits)")
+    plt.legend((line1,line2,line3),("MNIST Digits","Henry's Digits","Olek's Digits"))
+
+    plt.subplot(313)
+    line1, = plt.plot(ensemble_sizes,mnist_results["class_bits"])
+    line2, = plt.plot(ensemble_sizes,xm_results["class_bits"])
+    line3, = plt.plot(ensemble_sizes,ob_results["class_bits"])
+    plt.xlabel("ensemble size")
+    plt.ylabel("class disagreement entropy (bits)")
+    plt.legend((line1,line2,line3),("MNIST Digits","Henry's Digits","Olek's Digits"))
+
 def calc_shannon_entropy(pred):
     pred[np.where(pred == 0)]=1
     bitsmat = pred * np.log2(pred)
@@ -126,7 +154,7 @@ def experiment(network_conf_json, reshape_mode = "conv"):
 
     for ensemble_size in ensemble_sizes:
         # Building the ensemble models and training the networks
-        print("===== Building the ensemble models and training the networks =====")
+        print("===== Building the ensemble of size %s =====" % ensemble_size)
         
         inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_conf_json], pop_per_type=ensemble_size, merge_type="Average")
         train_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=['accuracy'])
@@ -146,9 +174,9 @@ def experiment(network_conf_json, reshape_mode = "conv"):
         xm_pred_bits.append(np.mean(calc_shannon_entropy(merge_model.predict([xm_digits]*ensemble_size))))
         ob_pred_bits.append(np.mean(calc_shannon_entropy(merge_model.predict([ob_digits]*ensemble_size))))
 
-        # Calculating ensemble members classification entropy
-
+        # Calculating ensemble members classification entropyc_error
         print("===== Calculating ensemble members classification entropy =====")
+
         mnist_class_bits.append(np.mean(calc_class_entropy(model_list,xtest)))
         xm_class_bits.append(np.mean(calc_class_entropy(model_list,xm_digits)))
         ob_class_bits.append(np.mean(calc_class_entropy(model_list,ob_digits)))
@@ -173,7 +201,10 @@ def experiment(network_conf_json, reshape_mode = "conv"):
 
     return mnist_results, xm_results, ob_results
 
-mnist_results, xm_results, ob_results = experiment(mlp_structure,"mlp")
+utils.setup_gpu_session()
+#mnist_results, xm_results, ob_results = experiment(mlp_structure,"mlp")
+#make_plots(mnist_results,ob_results,xm_results,"Ensemble of MLP")
+mnist_results, xm_results, ob_results = experiment(convnet_structure,"conv")
+make_plots(mnist_results,ob_results,xm_results,"Ensemble of ConvNets")
 
-print(mnist_results["class_bits"])
-
+plt.show()

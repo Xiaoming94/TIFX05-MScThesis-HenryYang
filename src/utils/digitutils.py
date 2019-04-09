@@ -97,21 +97,15 @@ def change_linewidth(img, radius):
             new_img[i,j] = find_new_pixval(img,j,i,radius) 
     
     return new_img
-def intern_calc_linewidth(img):
+    
+def linewidth_calculations(img):
     thickened = change_linewidth(img,1)
     thinned = change_linewidth(img,-1)
     gradient = thickened - thinned
     sumthick = np.sum(thickened)
     sumgrad = np.sum(gradient)
-    return 2 * sumthick/sumgrad
-
-def calc_linewidth(imgs):
-
-    tau = 0
-    with Pool(6) as p:
-        thicknesses = np.array(p.map(intern_calc_linewidth,imgs))
-        tau = np.mean(thicknesses)
-    return tau
+    tau = 2 * sumthick/sumgrad
+    return tau, thickened, thinned
 
 def load_image(img_path):
     img = cv2.imread(img_path, 0)

@@ -23,9 +23,9 @@ class ParallellWidthAdjust(object):
         self.pb = pb
 
     def adjust_linewidth(self,img):
-        new_img = utils.change_linewidth(img,self.factor)
+        tau, thick, thin = utils.linewidth_calculations(img)
         self.report_change()
-        return new_img
+        return tau, thick, thin
 
     def report_change(self):
         with self.lock:
@@ -51,43 +51,49 @@ def change_thickness(data, factor):
     pb = ProgressBar(total=datapoints,prefix="processing digits:", length=20, fill="=",zfill="_")
     pwa.reset(factor,pb)
     with Pool(6) as p:
-        new_data = p.map(wrapper_pwa_linewidth, data)
-    return np.array(new_data)
+        results_list = p.map(wrapper_pwa_linewidth, data)
+    
+    taus = np.zeros(datapoints)
+    new_data = np.zeros(data.shape)
+    for i in range(datapoints):
+        tau, thick, thin = results_list[i]
+        taus[i] = tau
+        new_data[i] = thick if factor > 0 else thin        
+
+    return np.mean(taus), new_data
 
 def change_thickness_nosave(data, ref_thickness):
     print("Adjusting the thicknesses to %s" % ref_thickness)
     diff = 1
-    r = 1
+    done_looping = False
     curr_data = data
-    tau = 0
-    while abs(ref_thickness - tau) > diff:
+    r = -1
+    while not done_looping:
         
-        tau = utils.calc_linewidth(curr_data)
+        tau,curr_data = change_thickness(curr_data,r)
         print("current linethickness : %s" % tau)
         r = int(np.sign(ref_thickness - tau))
+        done_looping = abs(ref_thickness - tau) < diff
         
-        if abs(ref_thickness - tau) > diff:
-            curr_data = change_thickness(curr_data,r)
-        print("end of loop")
     return curr_data
 
 
-def build_thickness_data(data, ref_thickness):
-    tau_data_dict = {}
-    diff = 1
-    r = 1
-    curr_data = data
-    tau = 0
-    while abs(ref_thickness - tau) > diff:
-        
-        tau = utils.calc_linewidth(curr_data)
-        tau_data_dict[tau] = scale_down(curr_data)
-        r = int(np.sign(ref_thickness - tau))
-        
-        if abs(ref_thickness - tau) > diff:
-            curr_data = change_thickness(curr_data,r)
-
-    return tau_data_dict
+#def build_thickness_data(data, ref_thickness):
+#    tau_data_dict = {}
+#    diff = 1
+#    r = 1
+#    curr_data = data
+#    tau = 0
+#    while abs(ref_thickness - tau) > diff:
+#        
+#        tau = utils.calc_linewidth(curr_data)
+#        tau_data_dict[tau] = scale_down(curr_data)
+#        r = int(np.sign(ref_thickness - tau))
+#        
+#        if abs(ref_thickness - tau) > diff:
+#            curr_data = change_thickness(curr_data,r)
+#
+#    return tau_data_dict
 
 xm_digits_path = os.path.join(".","images","XiaoMing_Digits")
 ob_digits_path = os.path.join(".","images","60 Images")

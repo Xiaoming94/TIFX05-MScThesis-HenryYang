@@ -3,8 +3,37 @@ from utils import digitutils as dutils
 import os
 import numpy as np
 import cv2
+from console_progressbar import ProgressBar
+from multiprocessing import Pool, Lock, Value
+import time
 
 mnist_linethickness = 67.14082725553595
+
+min_thickness = 25
+max_thickness = 80
+
+class ParallellWidthAdjust(object):
+
+    def __init__(self):
+        self.lock = Lock()
+
+    def reset(self,factor,pb):
+        self.factor = factor
+        self.iterations = Value('i',0)
+        self.pb = pb
+
+    def adjust_linewidth(self,img):
+        new_img = utils.change_linewidth(img,self.factor)
+        self.report_change()
+        return new_img
+
+    def report_change(self):
+        with self.lock:
+            self.iterations.value += 1
+            self.pb.print_progress_bar(self.iterations.value)
+
+pwa = ParallellWidthAdjust()
+
 
 def scale_down(data):
     downscaled = list(map(
@@ -13,17 +42,39 @@ def scale_down(data):
 
     return np.array(downscaled)
 
+def wrapper_pwa_linewidth(img):
+    return pwa.adjust_linewidth(img)
 
 def change_thickness(data, factor):
-
-    new_data = list(map(
-        lambda img: dutils.change_linewidth(img, factor), data   
-    ))
+    global pwa
+    datapoints = data.shape[0]
+    pb = ProgressBar(total=datapoints,prefix="processing digits:", length=20, fill="=",zfill="_")
+    pwa.reset(factor,pb)
+    with Pool(6) as p:
+        new_data = p.map(wrapper_pwa_linewidth, data)
     return np.array(new_data)
+
+def change_thickness_nosave(data, ref_thickness):
+    print("Adjusting the thicknesses to %s" % ref_thickness)
+    diff = 1
+    r = 1
+    curr_data = data
+    tau = 0
+    while abs(ref_thickness - tau) > diff:
+        
+        tau = utils.calc_linewidth(curr_data)
+        print("current linethickness : %s" % tau)
+        r = int(np.sign(ref_thickness - tau))
+        
+        if abs(ref_thickness - tau) > diff:
+            curr_data = change_thickness(curr_data,r)
+        print("end of loop")
+    return curr_data
+
 
 def build_thickness_data(data, ref_thickness):
     tau_data_dict = {}
-    diff = 2
+    diff = 1
     r = 1
     curr_data = data
     tau = 0
@@ -45,19 +96,10 @@ print("===== LOADING DIGITS =====")
 
 xm_digits, xm_labels = utils.load_image_data(xm_digits_path,side=286, padding=57)
 ob_digits, ob_labels = utils.load_image_data(ob_digits_path,side=286, padding=57)
-combined_data = np.concatenate((xm_digits,ob_digits))
 
-print("===== CREATING LINETHICKNESS BASED DATABASE =====")
+labels = np.concatenate((xm_labels,ob_labels)) 
 
-data_xm = build_thickness_data(xm_digits,mnist_linethickness)
-data_ob = build_thickness_data(ob_digits,mnist_linethickness)
-data_comb = build_thickness_data(combined_data, mnist_linethickness)
+xm_digits = change_thickness_nosave(xm_digits,min_thickness)
+ob_digits = change_thickness_nosave(ob_digits,min_thickness)
 
-data_xm["labels"] = xm_labels
-data_ob["labels"] = ob_labels
-
-print("===== SAVING DATA TO DISK =====")
-
-utils.save_processed_data(data_xm, "xiaoming_digits")
-utils.save_processed_data(data_ob, "Oleks_digits")
-utils.save_processed_data(data_comb, "combined_digits")
+combined = np.concatenate((xm_digits,ob_digits),axis=0)

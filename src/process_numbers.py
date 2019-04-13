@@ -12,28 +12,57 @@ mnist_linethickness = 67.14082725553595
 min_thickness = 25
 max_thickness = 80
 
-class ParallellWidthAdjust(object):
-
+class ProgressReporter(object):
     def __init__(self):
         self.lock = Lock()
-
-    def reset(self,factor,pb):
-        self.factor = factor
-        self.iterations = Value('i',0)
+    
+    def reset(self,pb):
+        self.iterations = Value('i', 0)
         self.pb = pb
-
-    def adjust_linewidth(self,img):
-        new_img = utils.change_linewidth(img,self.factor)
-        self.report_change()
-        return new_img
-
-    def report_change(self):
+    
+    def report_complete(self):
         with self.lock:
             self.iterations.value += 1
             self.pb.print_progress_bar(self.iterations.value)
 
-pwa = ParallellWidthAdjust()
+class CommonWidthAdjuster(object):
 
+    def __init__(self,p_reporter):
+        self.reporter = p_reporter
+
+    def reset(self,factor,pb):
+        self.reporter.reset(pb)
+        self.factor = factor 
+
+    def adjust_linewidth(self,img):
+        new_img = utils.change_linewidth(img,self.factor)
+        self.reporter.report_complete()
+        return new_img
+
+class ParallellWidthAdjuster(object):
+
+    def __init__(self, p_reporter):
+        self.reporter = p_reporter
+    
+    def reset(self,rtau,pb):
+        self.reporter.reset(pb)
+        self.r_tau = rtau
+
+    def adjust_linewidth(self, img):
+        tau = utils.intern_calc_linewidth(img)
+        
+        r = int(round(self.r_tau - tau))
+        print("{rtau : %s, tau: %s, r = %s}" % (self.r_tau, tau, r))
+        img = utils.change_linewidth(img,r)
+        tau = utils.intern_calc_linewidth(img)
+        print("new line thickness tau = %s" % tau)
+        #self.reporter.report_complete()
+        return img
+
+
+p_reporter = ProgressReporter()
+cwa = CommonWidthAdjuster(p_reporter)
+pwa = ParallellWidthAdjuster(p_reporter)
 
 def scale_down(data):
     downscaled = list(map(
@@ -42,16 +71,19 @@ def scale_down(data):
 
     return np.array(downscaled)
 
+def wrapper_cwa_linewidth(img):
+    return cwa.adjust_linewidth(img)
+
 def wrapper_pwa_linewidth(img):
     return pwa.adjust_linewidth(img)
 
 def change_thickness(data, factor):
-    global pwa
+    global cwa
     datapoints = data.shape[0]
     pb = ProgressBar(total=datapoints,prefix="processing digits:", length=20, fill="=",zfill="_")
-    pwa.reset(factor,pb)
+    cwa.reset(factor,pb)
     with Pool(6) as p:
-        new_data = p.map(wrapper_pwa_linewidth, data)
+        new_data = p.map(wrapper_cwa_linewidth, data)
     return np.array(new_data)
 
 def change_thickness_nosave(data, ref_thickness):
@@ -91,11 +123,15 @@ def build_thickness_data(data, ref_thickness):
 
     return tau_data_dict
 
-def helper_normalize_digit(digit, tau):
-
-
 def normalize_digit_thickness(digits):
+    global pwa
     tau = utils.calc_linewidth(digits)
+    datapoints = digits.shape[0]
+    pb = ProgressBar(total=datapoints,prefix="processing digits:", length=20, fill="=",zfill="_")
+    pwa.reset(tau,pb)
+
+    d_normalized = list(map(wrapper_pwa_linewidth, digits))
+    return np.array(d_normalized)
 
 
 def load_process_digits(pathlist):
@@ -104,6 +140,7 @@ def load_process_digits(pathlist):
     for p in pathlist:
         digits_data, labels_data = utils.load_image_data(p,side=286, padding=57)
         labels = np.concatenate((labels,labels_data))
+        digits_data = normalize_digit_thickness(digits_data)
         digits_data = change_thickness_nosave(digits_data,min_thickness)
         digits.append(digits_data)
         print(labels.shape)

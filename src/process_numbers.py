@@ -64,11 +64,12 @@ def change_thickness_nosave(data, ref_thickness):
         
         tau = utils.calc_linewidth(curr_data)
         print("current linethickness : %s" % tau)
-        r = int(np.sign(ref_thickness - tau))
-        
+        dt = ref_thickness - tau
+        r = int(round((dt) * 0.25))
+        r = r if r != 0 else int(np.sign(dt)) # Ensures that r is at least 1 or -1
+        print("Adjusting Linewidth with r = %s" % r)
         if abs(ref_thickness - tau) > diff:
             curr_data = change_thickness(curr_data,r)
-        print("end of loop")
     return curr_data
 
 
@@ -78,28 +79,64 @@ def build_thickness_data(data, ref_thickness):
     r = 1
     curr_data = data
     tau = 0
+    print("Preparing testing data")
     while abs(ref_thickness - tau) > diff:
         
         tau = utils.calc_linewidth(curr_data)
+        print("current linethickness : %s" % tau)
         tau_data_dict[tau] = scale_down(curr_data)
         r = int(np.sign(ref_thickness - tau))
-        
         if abs(ref_thickness - tau) > diff:
             curr_data = change_thickness(curr_data,r)
 
     return tau_data_dict
 
-xm_digits_path = os.path.join(".","images","XiaoMing_Digits")
-ob_digits_path = os.path.join(".","images","60 Images")
+def helper_normalize_digit(digit, tau):
+
+
+def normalize_digit_thickness(digits):
+    tau = utils.calc_linewidth(digits)
+
+
+def load_process_digits(pathlist):
+    digits = []
+    labels = np.array([])
+    for p in pathlist:
+        digits_data, labels_data = utils.load_image_data(p,side=286, padding=57)
+        labels = np.concatenate((labels,labels_data))
+        digits_data = change_thickness_nosave(digits_data,min_thickness)
+        digits.append(digits_data)
+        print(labels.shape)
+    d_combined = np.concatenate(digits,axis=0)
+    print(d_combined.shape)
+    return d_combined, labels
+
+images_path = os.path.join(".","images")
+
+xm_digits_path = os.path.join(images_path,"XiaoMing_Digits")
+ob_digits_path = os.path.join(images_path,"60 Images")
+m_digits_path = os.path.join(images_path,"mnumbers")
+hubben1_path = os.path.join(images_path,"Size1")
+hubben2_path = os.path.join(images_path,"Size2")
+hubben3_path = os.path.join(images_path,"Size3")
+hubben4_path = os.path.join(images_path,"Size4")
+
+digit_paths = [
+      xm_digits_path
+    , ob_digits_path
+    , m_digits_path
+    , hubben1_path
+    , hubben2_path
+    , hubben3_path
+    , hubben4_path
+]
 
 print("===== LOADING DIGITS =====")
 
-xm_digits, xm_labels = utils.load_image_data(xm_digits_path,side=286, padding=57)
-ob_digits, ob_labels = utils.load_image_data(ob_digits_path,side=286, padding=57)
+d_combined, labels = load_process_digits(digit_paths)
 
-labels = np.concatenate((xm_labels,ob_labels)) 
+data_dict = build_thickness_data(d_combined,max_thickness)
+data_dict['labels'] = labels
+utils.save_processed_data(data_dict,'combined_testing_data')
 
-xm_digits = change_thickness_nosave(xm_digits,min_thickness)
-ob_digits = change_thickness_nosave(ob_digits,min_thickness)
-
-combined = np.concatenate((xm_digits,ob_digits),axis=0)
+print("Script done running")

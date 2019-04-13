@@ -74,20 +74,23 @@ def unpad_img(img):
 def change_linewidth(img, radius):
     def find_new_pixval(img, x, y, radius):
         (height,width) = img.shape
-        xstart = max(x - abs(radius), 0)
-        xend = min(x + abs(radius), width)
+        a_radius = abs(radius)
+        l_rx = list(range(-1 * a_radius, a_radius + 1))
+        l_ry = list(range(-1 * a_radius, a_radius + 1))
+        search_coords = [(rx,ry) for rx in l_rx for ry in l_ry if (abs(rx) + abs(ry) <= a_radius)]
         newpix = img[y,x]
-        for rx in range(xstart,xend):
-            dx = abs(rx - x) # Distance to X
-            dy_search = abs(radius) - dx
-            ystart = max(y - dy_search, 0)
-            yend = min(y + dy_search, height)
-            for ry in range(ystart,yend):
-                if radius < 0:
-                    newpix = min(img[ry,rx],newpix)
-                else:
-                    newpix = max(img[ry,rx],newpix)
-            
+        for rx,ry in search_coords:
+            # Bounding the coordinates
+            drx = max(x + rx, 0)
+            drx = min(drx, width-1)
+            dry = max(y + ry, 0)
+            dry = min(dry, height-1)
+
+            if radius < 0:
+                newpix = min(img[dry,drx],newpix)
+            else:
+                newpix = max(img[dry,drx],newpix)
+        
         return newpix
 
     (height,width) = img.shape

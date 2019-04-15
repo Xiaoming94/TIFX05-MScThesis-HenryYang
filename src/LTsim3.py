@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import cv2
 
-network_model = """
+network_model1 = """
 {
     "input_shape" : [28,28,1],
     "layers" : [
@@ -102,7 +102,7 @@ def scale_down(data):
 def test_model(model, data, labels):
     data = utils.normalize_data(data)
     data_size = data.shape[0]
-    data = data.reshape(data_size, 784)
+    data = data.reshape(data_size, 28,28,1)
     return ann.test_model(model, data, labels, metric = "accuracy")
 
 def change_thickness(data, factor):
@@ -113,62 +113,60 @@ def change_thickness(data, factor):
     return np.array(new_data)
 
 def thickness_sim(model, data):
-    labels = utils.create_one_hot(data["labels"])
+    labels = utils.create_one_hot(data['labels'].astype('uint'))
     thicknesses = list(data.keys())[:-1]
     numdata = len(thicknesses)
     acc = np.zeros(numdata)
     for i,t in zip(range(numdata),thicknesses):
         acc[i] = test_model(model,data[t],labels)
-    return acc, thicknesses
+    return acc
 
 
 
 
 #mnist_linethickness = 66.97000583000295 ## Obtained from running mnistlinewidth.py file
-mnist_linethickness = 67.14082725553595
+mnist_linethickness = 19.690326437863234
 # 93.62709087870702
 
-epochs = 5
+epochs = 3
 
-xm_digits_path = os.path.join(".","images","XiaoMing_Digits")
-ob_digits_path = os.path.join(".","images","60 Images")
+trials = 100
 
-xtrain,ytrain,xtest,ytest = utils.load_mnist()
-xtrain,xtest = xtrain.reshape(60000,784),xtest.reshape(10000,784)
-xtrain,ytrain,xval,yval = utils.create_validation(xtrain,ytrain,1/6)
 utils.setup_gpu_session()
-print("====== START TRAINING NEURAL NETWORK MODEL ======")
-model = ann.parse_model_js(network_model2)
-model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=['accuracy'])
-model.fit(xtrain,ytrain, verbose=1, validation_data=(xval,yval),epochs=epochs)
-print("====== CALCULATING MNIST ACCURACY ======")
-mnist_accuracy = ann.test_model(model, xtest, ytest, "accuracy")
+acc_results_custom = []
+acc_results_mnist = []
+test_digits = utils.load_processed_data("combined_testing_data")
 
-print("====== LOAD CUSTOM DIGITS FROM OLEKSANDR AND HENRY ======")
-xm_data = utils.load_processed_data("xiaoming_digits")
-ob_data = utils.load_processed_data("Oleks_digits")
-combined_data = utils.load_processed_data("combined_digits")
-combined_data["labels"] = np.concatenate([xm_data["labels"],ob_data["labels"]])
+for i in range(trials):
+    print("====== START TRAINING NEURAL NETWORK MODEL ======")
+    xtrain,ytrain,xtest,ytest = utils.load_mnist()
+    xtrain,xtest = xtrain.reshape(60000, 28,28,1),xtest.reshape(10000, 28,28,1)
+    xtrain,ytrain,xval,yval = utils.create_validation(xtrain,ytrain,1/6)
+    model = ann.parse_model_js(network_model1)
+    model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=['accuracy'])
+    model.fit(xtrain,ytrain, verbose=1, validation_data=(xval,yval),epochs=epochs)
+    print("====== CALCULATING MNIST ACCURACY ======")
+    mnist_accuracy = ann.test_model(model, xtest, ytest, "accuracy")
+    comb_acc = thickness_sim(model,test_digits)
+    acc_results_mnist.append(mnist_accuracy)
+    acc_results_custom.append(comb_acc)
+    print("Finished trial %s" % (i + 1))
 
-print("Analysing Henry's Digits")
-xm_acc, xm_tau = thickness_sim(model,xm_data)
-print("== FINISH ==\n")
-print("Analysing Oleksandr's Digits")
-ob_acc, ob_tau = thickness_sim(model,ob_data)
-print("== FINISH ==\n")
-print("Analysing COmbined digit set")
-comb_acc, comb_tau = thickness_sim(model,combined_data)
-print("Finish \n")
+#print(acc_results_custom)
+mnist_accuracy = np.mean(np.array(acc_results_mnist))
+comb_tau = list(test_digits.keys())[:-1]
+acc_results_custom = np.stack(acc_results_custom)
+comb_acc = np.mean(acc_results_custom,axis=0)
+
 print("plotting:")
 plt.figure()
-plt.plot([mnist_linethickness,mnist_linethickness],[0,1.2],linestyle="--")
-plt.plot([0,68],[mnist_accuracy,mnist_accuracy],linestyle="--")
+p_mnist_tau, = plt.plot([mnist_linethickness,mnist_linethickness],[comb_acc[0],1.0],linestyle="--",color="black")
+p_mnist_acc, = plt.plot([4.8,25],[mnist_accuracy,mnist_accuracy],linestyle="--",color="darkblue")
+custom_trial = plt.plot(comb_tau,acc_results_custom.transpose(),color="lightgrey")
 plt.grid()
-xm_line, = plt.plot(xm_tau,xm_acc)
-ob_line, = plt.plot(ob_tau,ob_acc)
-comb_line, = plt.plot(comb_tau,comb_acc)
+comb_line, = plt.plot(comb_tau,comb_acc,color="red")
 plt.xlabel("Line Thickness")
 plt.ylabel("Accuracy")
 plt.title("Accuracy change over Line thickness")
-plt.legend((xm_line,ob_line,comb_line),("Henry's Digits","Oleksandr's Digits","Combined Digits"))
+plt.legend((custom_trial[0], p_mnist_tau, p_mnist_acc, comb_line),("combined digits trials","mnist_linethickness","mnist_accuracy","Combined Digits Mean"))
 plt.show()

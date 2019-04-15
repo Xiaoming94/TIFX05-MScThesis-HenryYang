@@ -6,7 +6,9 @@ def test_model(model, test_data, test_labels, metric = "accuracy"):
         metric = test_accuracy
     if metric == "c_error":
         metric = test_classification_err
-    
+    if metric == "entropy":
+        metric = shannon_entropy
+
     predictions = model.predict(test_data)
     return metric(predictions, test_labels)
 
@@ -28,3 +30,8 @@ def test_classification_err(test_pred, test_labels):
     diff = classes - test_labels
     c_err = (1/(2 * num_data)) * np.sum(np.sum(np.abs(diff)))
     return c_err
+
+def shannon_entropy(test_pred, test_labels):
+    bitsmat = test_pred * np.log2(test_pred)
+    bits = -1 * np.sum(bitsmat, axis=1)
+    return np.mean(bits)

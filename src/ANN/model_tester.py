@@ -10,8 +10,7 @@ def test_model(model, test_data, test_labels, metric = "accuracy"):
     if metric == "entropy":
         metric = shannon_entropy
 
-    predictions = model.predict(test_data)
-    return metric(predictions, test_labels)
+    return metric(model,test_data, test_labels)
 
 def classify(pred):
     class_index = np.argmax(pred,1)
@@ -20,19 +19,25 @@ def classify(pred):
         classes[i,j] = 1
     return classes   
     
-def test_accuracy(test_pred, test_labels):
-    correct = np.equal(np.argmax(test_pred,1),np.argmax(test_labels,1))
-    accuracy = np.mean(correct)
+def test_accuracy(model,test_data, test_labels):
+    if "acc" in model.metrics_names:
+        [_,accuracy] = model.evaluate(x=test_data,y=test_labels,verbose=0)
+    else:
+        predictions = model.predict(test_data)
+        correct = np.equal(np.argmax(predictions,1),np.argmax(test_y,1))
+        accuracy = np.mean(correct)
     return accuracy
 
-def test_classification_err(test_pred, test_labels):
-    num_data = test_pred.shape[0]
-    classes = classify(test_pred)
+def test_classification_err(model, test_data, test_labels):
+    predictions = model.predict(test_data)
+    num_data = test_data.shape[0]
+    classes = classify(predictions)
     diff = classes - test_labels
     c_err = (1/(2 * num_data)) * np.sum(np.sum(np.abs(diff)))
     return c_err
 
-def shannon_entropy(test_pred, test_labels):
-    bits=entropy(test_pred.transpose(), base=2)
+def shannon_entropy(model, test_data, test_labels):
+    predictions = model.predict(test_data)
+    bits=entropy(predictions.transpose(), base=2)
     print(bits.shape)
     return np.mean(bits)

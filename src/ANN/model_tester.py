@@ -1,5 +1,6 @@
 from keras.models import Sequential, Model
 import numpy as np
+from scipy.stats import entropy
 
 def test_model(model, test_data, test_labels, metric = "accuracy"):
     if metric == "accuracy":
@@ -32,6 +33,6 @@ def test_classification_err(test_pred, test_labels):
     return c_err
 
 def shannon_entropy(test_pred, test_labels):
-    bitsmat = test_pred * np.log2(test_pred)
-    bits = -1 * np.sum(bitsmat, axis=1)
+    bits=entropy(test_pred.transpose(), base=2)
+    print(bits.shape)
     return np.mean(bits)

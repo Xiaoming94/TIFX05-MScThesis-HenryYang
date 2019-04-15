@@ -9,8 +9,8 @@ import time
 
 mnist_linethickness = 67.14082725553595
 
-min_thickness = 25
-max_thickness = 80
+min_thickness = 5
+max_thickness = 25
 
 class ProgressReporter(object):
     def __init__(self):
@@ -52,11 +52,11 @@ class ParallellWidthAdjuster(object):
         tau = utils.intern_calc_linewidth(img)
         
         r = int(round(self.r_tau - tau))
-        print("{rtau : %s, tau: %s, r = %s}" % (self.r_tau, tau, r))
+        #print("{rtau : %s, tau: %s, r = %s}" % (self.r_tau, tau, r))
         img = utils.change_linewidth(img,r)
         tau = utils.intern_calc_linewidth(img)
-        print("new line thickness tau = %s" % tau)
-        #self.reporter.report_complete()
+        #print("new line thickness tau = %s" % tau)
+        self.reporter.report_complete()
         return img
 
 
@@ -88,7 +88,7 @@ def change_thickness(data, factor):
 
 def change_thickness_nosave(data, ref_thickness):
     print("Adjusting the thicknesses to %s" % ref_thickness)
-    diff = 1
+    diff = 0.5
     r = 1
     curr_data = data
     tau = 0
@@ -97,17 +97,17 @@ def change_thickness_nosave(data, ref_thickness):
         tau = utils.calc_linewidth(curr_data)
         print("current linethickness : %s" % tau)
         dt = ref_thickness - tau
-        r = int(round((dt) * 0.25))
+        r = int(round(dt))
         r = r if r != 0 else int(np.sign(dt)) # Ensures that r is at least 1 or -1
-        print("Adjusting Linewidth with r = %s" % r)
         if abs(ref_thickness - tau) > diff:
+            print("Adjusting Linewidth with r = %s" % r)
             curr_data = change_thickness(curr_data,r)
     return curr_data
 
 
 def build_thickness_data(data, ref_thickness):
     tau_data_dict = {}
-    diff = 1
+    diff = 0.5
     r = 1
     curr_data = data
     tau = 0
@@ -126,11 +126,14 @@ def build_thickness_data(data, ref_thickness):
 def normalize_digit_thickness(digits):
     global pwa
     tau = utils.calc_linewidth(digits)
+    
     datapoints = digits.shape[0]
     pb = ProgressBar(total=datapoints,prefix="processing digits:", length=20, fill="=",zfill="_")
+    
     pwa.reset(tau,pb)
-
-    d_normalized = list(map(wrapper_pwa_linewidth, digits))
+    print("Normalizing %s digits to tau = %s" % (datapoints,tau))
+    with Pool(6) as p:
+        d_normalized = p.map(wrapper_pwa_linewidth, digits)
     return np.array(d_normalized)
 
 

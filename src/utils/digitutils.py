@@ -72,12 +72,8 @@ def unpad_img(img):
     return img
 
 def change_linewidth(img, radius):
-    def find_new_pixval(img, x, y, radius):
+    def find_new_pixval(img, x, y, radius,search_coords):
         (height,width) = img.shape
-        a_radius = abs(radius)
-        l_rx = list(range(-1 * a_radius, a_radius + 1))
-        l_ry = list(range(-1 * a_radius, a_radius + 1))
-        search_coords = [(rx,ry) for rx in l_rx for ry in l_ry if (abs(rx) + abs(ry) <= a_radius)]
         newpix = img[y,x]
         for rx,ry in search_coords:
             # Bounding the coordinates
@@ -95,16 +91,21 @@ def change_linewidth(img, radius):
 
     (height,width) = img.shape
     new_img = np.zeros([height,width])
+    a_radius = abs(radius)
+    l_rx = list(range(-1 * a_radius, a_radius + 1))
+    l_ry = list(range(-1 * a_radius, a_radius + 1))
+    search_coords = [(rx,ry) for rx in l_rx for ry in l_ry if (abs(rx) + abs(ry) <= a_radius)]
+
     for i in range(height):
         for j in range(width):
-            new_img[i,j] = find_new_pixval(img,j,i,radius) 
+            new_img[i,j] = find_new_pixval(img,j,i,radius,search_coords) 
     
     return new_img
 def intern_calc_linewidth(img):
     thickened = change_linewidth(img,1)
     thinned = change_linewidth(img,-1)
     gradient = thickened - thinned
-    sumthick = np.sum(thickened)
+    sumthick = np.sum(img)
     sumgrad = np.sum(gradient)
     return 2 * sumthick/sumgrad
 

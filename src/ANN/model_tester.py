@@ -30,7 +30,7 @@ def test_accuracy(model,test_data, test_labels):
 
 def test_classification_err(model, test_data, test_labels):
     predictions = model.predict(test_data)
-    num_data = test_data.shape[0]
+    num_data = predictions.shape[0]
     classes = classify(predictions)
     diff = classes - test_labels
     c_err = (1/(2 * num_data)) * np.sum(np.sum(np.abs(diff)))

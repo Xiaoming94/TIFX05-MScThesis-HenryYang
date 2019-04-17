@@ -40,8 +40,12 @@ def build_ensemble(net_configs, pop_per_type = 5, merge_type = None):
             outputs.append(ol)
     
     train_model = Model(inputs=inputs, outputs=outputs)
-    merge_layer = merge_layers[merge_type] if merge_type != None else None
-    merge_model = Model(inputs=inputs, outputs=merge_layer(outputs)) if merge_layer != None else None
+    if len(outputs) > 1:
+        merge_layer = merge_layers[merge_type] if merge_type != None else None
+        merge_model = Model(inputs=inputs, outputs=merge_layer(outputs)) if merge_layer != None else None
+    else: # There is only 1 member in the Ensemble
+        merge_model = train_model
+
     model_list = [Model(inputs=il,outputs=ol) for il,ol in zip(inputs,outputs)]
     return inputs, outputs, train_model, model_list, merge_model
 

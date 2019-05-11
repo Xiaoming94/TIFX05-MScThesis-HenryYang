@@ -6,10 +6,11 @@ import cv2
 from console_progressbar import ProgressBar
 from multiprocessing import Pool, Lock, Value
 import time
+import copy
 
-mnist_linethickness = 67.14082725553595
+#mnist_linethickness = 67.14082725553595
 
-min_thickness = 5
+min_thickness = 2
 max_thickness = 25
 
 class ProgressReporter(object):
@@ -77,7 +78,7 @@ def wrapper_cwa_linewidth(img):
 def wrapper_pwa_linewidth(img):
     return pwa.adjust_linewidth(img)
 
-def change_thickness(data, factor):
+def change_thickness_helper(data, factor):
     global cwa
     datapoints = data.shape[0]
     pb = ProgressBar(total=datapoints,prefix="processing digits:", length=20, fill="=",zfill="_")
@@ -86,7 +87,7 @@ def change_thickness(data, factor):
         new_data = p.map(wrapper_cwa_linewidth, data)
     return np.array(new_data)
 
-def change_thickness_nosave(data, ref_thickness):
+def change_thickness(data, ref_thickness):
     print("Adjusting the thicknesses to %s" % ref_thickness)
     diff = 0.5
     r = 1
@@ -101,25 +102,17 @@ def change_thickness_nosave(data, ref_thickness):
         r = r if r != 0 else int(np.sign(dt)) # Ensures that r is at least 1 or -1
         if abs(ref_thickness - tau) > diff:
             print("Adjusting Linewidth with r = %s" % r)
-            curr_data = change_thickness(curr_data,r)
+            curr_data = change_thickness_helper(curr_data,r)
     return curr_data
 
 
-def build_thickness_data(data, ref_thickness):
+def build_thickness_data(data,min_thickness,max_thickness):
     tau_data_dict = {}
-    diff = 0.5
-    r = 1
-    curr_data = data
-    tau = 0
+
     print("Preparing testing data")
-    while abs(ref_thickness - tau) > diff:
+    for t in range(min_thickness,max_thickness + 1):
         
-        tau = utils.calc_linewidth(curr_data)
-        print("current linethickness : %s" % tau)
-        tau_data_dict[tau] = scale_down(curr_data)
-        r = int(np.sign(ref_thickness - tau))
-        if abs(ref_thickness - tau) > diff:
-            curr_data = change_thickness(curr_data,r)
+        tau_data_dict[t] = change_thickness(data, t)
 
     return tau_data_dict
 
@@ -138,18 +131,34 @@ def normalize_digit_thickness(digits):
 
 
 def load_process_digits(pathlist):
-    digits = []
+
     labels = np.array([])
+    combined_data_dict = {}
+    for t in range(min_thickness,max_thickness+1):
+        combined_data_dict[t] = []
+
+    dataset_index = 0
     for p in pathlist:
-        digits_data, labels_data = utils.load_image_data(p,side=286, padding=57)
+        dataset_index += 1
+        digits_data, labels_data = utils.load_image_data(p,side=200, padding=40)
         labels = np.concatenate((labels,labels_data))
-        digits_data = normalize_digit_thickness(digits_data)
-        digits_data = change_thickness_nosave(digits_data,min_thickness)
-        digits.append(digits_data)
+        #digits_data = normalize_digit_thickness(digits_data)
+        #digits_data = change_thickness(digits_data,min_thickness)
+        tau_data_dict = build_thickness_data(digits_data,min_thickness,max_thickness)
+        processed_digit_copy = copy.deepcopy(tau_data_dict)
+        processed_digit_copy["labels"] = labels_data
+        filename = 'Dataset-%i-save' % dataset_index
+        utils.save_processed_data(processed_digit_copy,filename)
+
+        for k in tau_data_dict.keys():
+            d = tau_data_dict[k]
+            combined_data_dict[k].append(d)
         print(labels.shape)
-    d_combined = np.concatenate(digits,axis=0)
-    print(d_combined.shape)
-    return d_combined, labels
+
+
+    for t in combined_data_dict.keys():
+        combined_data_dict[t] = np.concatenate(combined_data_dict[t],axis = 0)
+    return combined_data_dict, labels
 
 images_path = os.path.join(".","images")
 
@@ -163,7 +172,7 @@ hubben4_path = os.path.join(images_path,"Size4")
 
 digit_paths = [
       xm_digits_path
-    , ob_digits_path
+     ,ob_digits_path
     , m_digits_path
     , hubben1_path
     , hubben2_path
@@ -173,10 +182,9 @@ digit_paths = [
 
 print("===== LOADING DIGITS =====")
 
-d_combined, labels = load_process_digits(digit_paths)
-
-data_dict = build_thickness_data(d_combined,max_thickness)
+data_dict, labels = load_process_digits(digit_paths)
+print(data_dict)
 data_dict['labels'] = labels
-utils.save_processed_data(data_dict,'combined_testing_data')
+#utils.save_processed_data(data_dict,'combined_testing_data')
 
 print("Script done running")

@@ -47,20 +47,19 @@ network_model1 = """
 """
 
 def resize_helper(img):
-    sides = 400
+    sides = 280
     return cv2.resize(img, (sides,sides))
 
 xtrain, ytrain, xtest, ytest = utils.load_mnist()
-mnist_total = np.concatenate((xtrain,xtest))
 chunksize = 1000
-mnist_total_size = mnist_total.shape[0]
+mnist_total_size = xtest.shape[0]
 partitions = int(mnist_total_size/chunksize)
 taus = []
 
 for i in range(partitions):
     print("Starting Loop")
     with Pool(6) as p:
-        mnist_batch = mnist_total[i*chunksize:(i+1)*chunksize]
+        mnist_batch = xtest[i*chunksize:(i+1)*chunksize]
         mnist_batch_big = np.array(p.map(resize_helper, mnist_batch))
 
     taus.append(utils.calc_linewidth(mnist_batch_big))

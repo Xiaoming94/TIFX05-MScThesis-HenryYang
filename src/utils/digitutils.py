@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import functools
 from multiprocessing import Pool
+import threading
 
 def resize_image(img, side):
     """
@@ -72,9 +73,9 @@ def unpad_img(img):
     return img
 
 def change_linewidth(img, radius):
-    def find_new_pixval(img, x, y, radius,search_coords):
+    def find_new_pixval(img, newimg, x, y, radius,search_coords):
         (height,width) = img.shape
-        newpix = img[y,x]
+        pixels = []
         for rx,ry in search_coords:
             # Bounding the coordinates
             drx = max(x + rx, 0)
@@ -82,12 +83,9 @@ def change_linewidth(img, radius):
             dry = max(y + ry, 0)
             dry = min(dry, height-1)
 
-            if radius < 0:
-                newpix = min(img[dry,drx],newpix)
-            else:
-                newpix = max(img[dry,drx],newpix)
+            pixels.append(img[dry,drx])
         
-        return newpix
+        newimg[y,x] = max(pixels) if radius > 0 else min(pixels)
 
     (height,width) = img.shape
     new_img = np.zeros([height,width])
@@ -96,9 +94,16 @@ def change_linewidth(img, radius):
     l_ry = list(range(-1 * a_radius, a_radius + 1))
     search_coords = [(rx,ry) for rx in l_rx for ry in l_ry if (abs(rx) + abs(ry) <= a_radius)]
 
+    threads = []
     for i in range(height):
         for j in range(width):
-            new_img[i,j] = find_new_pixval(img,j,i,radius,search_coords) 
+            #t = threading.Thread(target = find_new_pixval, args = (img,new_img,j,i,radius,search_coords))
+            #threads.append(t)
+            #t.start()
+            find_new_pixval(img,new_img,j,i, radius, search_coords)
+    
+    #for t in threads:
+    #    t.join()
     
     return new_img
 def intern_calc_linewidth(img):

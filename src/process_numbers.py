@@ -7,20 +7,21 @@ from console_progressbar import ProgressBar
 from multiprocessing import Pool, Lock, Value
 import time
 import copy
+import datetime
 
 #mnist_linethickness = 67.14082725553595
 
 min_thickness = 2
-max_thickness = 25
+max_thickness = 20
 
 class ProgressReporter(object):
     def __init__(self):
         self.lock = Lock()
-    
+
     def reset(self,pb):
         self.iterations = Value('i', 0)
         self.pb = pb
-    
+
     def report_complete(self):
         with self.lock:
             self.iterations.value += 1
@@ -33,7 +34,7 @@ class CommonWidthAdjuster(object):
 
     def reset(self,factor,pb):
         self.reporter.reset(pb)
-        self.factor = factor 
+        self.factor = factor
 
     def adjust_linewidth(self,img):
         new_img = utils.change_linewidth(img,self.factor)
@@ -44,19 +45,21 @@ class ParallellWidthAdjuster(object):
 
     def __init__(self, p_reporter):
         self.reporter = p_reporter
-    
+
     def reset(self,rtau,pb):
         self.reporter.reset(pb)
         self.r_tau = rtau
 
     def adjust_linewidth(self, img):
         tau = utils.intern_calc_linewidth(img)
-        
-        r = int(round(self.r_tau - tau))
-        #print("{rtau : %s, tau: %s, r = %s}" % (self.r_tau, tau, r))
-        img = utils.change_linewidth(img,r)
-        tau = utils.intern_calc_linewidth(img)
-        #print("new line thickness tau = %s" % tau)
+        diff = 0.9
+        while abs(self.r_tau - tau) > diff:
+            r = int(round(self.r_tau - tau))
+            r = r if r != 0 else int(np.sign(dt)) # Ensures that r is at least 1 or -1
+            #print("{rtau : %s, tau: %s, r = %s}" % (self.r_tau, tau, r))
+            img = utils.change_linewidth(img,r)
+            tau = utils.intern_calc_linewidth(img)
+            #print("new line thickness tau = %s" % tau)
         self.reporter.report_complete()
         return img
 
@@ -85,16 +88,32 @@ def change_thickness_helper(data, factor):
     cwa.reset(factor,pb)
     with Pool(6) as p:
         new_data = p.map(wrapper_cwa_linewidth, data)
-    return np.array(new_data)
+        new_data = np.array(new_data)
+    return new_data
+
+def change_thickness_individual(data, ref_thickness):
+    global pwa
+
+    print("Adjusting the thicknesses to %s" % ref_thickness)
+    curr_data = data
+    datapoints = data.shape[0]
+    pb = ProgressBar(total=datapoints,prefix="processing digits:", length=20, fill="=",zfill="_")
+    pwa.reset(ref_thickness, pb)
+
+    with Pool(6) as p:
+        curr_data = p.map(wrapper_pwa_linewidth, curr_data)
+        curr_data = np.array(curr_data)
+    #    print("current Linethickness %s" % utils.calc_linewidth(curr_data))
+
+    return curr_data
+
 
 def change_thickness(data, ref_thickness):
     print("Adjusting the thicknesses to %s" % ref_thickness)
     diff = 0.5
-    r = 1
     curr_data = data
-    tau = 0
     while abs(ref_thickness - tau) > diff:
-        
+
         tau = utils.calc_linewidth(curr_data)
         print("current linethickness : %s" % tau)
         dt = ref_thickness - tau
@@ -111,18 +130,19 @@ def build_thickness_data(data,min_thickness,max_thickness):
 
     print("Preparing testing data")
     for t in range(min_thickness,max_thickness + 1):
-        
-        tau_data_dict[t] = change_thickness(data, t)
+
+        changed_data = change_thickness_individual(data, t)
+        tau_data_dict[t] = scale_down(changed_data)
 
     return tau_data_dict
 
 def normalize_digit_thickness(digits):
     global pwa
     tau = utils.calc_linewidth(digits)
-    
+
     datapoints = digits.shape[0]
     pb = ProgressBar(total=datapoints,prefix="processing digits:", length=20, fill="=",zfill="_")
-    
+
     pwa.reset(tau,pb)
     print("Normalizing %s digits to tau = %s" % (datapoints,tau))
     with Pool(6) as p:
@@ -138,6 +158,7 @@ def load_process_digits(pathlist):
         combined_data_dict[t] = []
 
     dataset_index = 0
+    t = time.time()
     for p in pathlist:
         dataset_index += 1
         digits_data, labels_data = utils.load_image_data(p,side=200, padding=40)
@@ -158,6 +179,8 @@ def load_process_digits(pathlist):
 
     for t in combined_data_dict.keys():
         combined_data_dict[t] = np.concatenate(combined_data_dict[t],axis = 0)
+    elapsed = time.time() - t
+    print("This ran for : %s" % (datetime.timedelta(seconds = elapsed)))
     return combined_data_dict, labels
 
 images_path = os.path.join(".","images")
@@ -171,13 +194,13 @@ hubben3_path = os.path.join(images_path,"Size3")
 hubben4_path = os.path.join(images_path,"Size4")
 
 digit_paths = [
-      xm_digits_path
-     ,ob_digits_path
-    , m_digits_path
-    , hubben1_path
-    , hubben2_path
-    , hubben3_path
-    , hubben4_path
+    #  xm_digits_path
+     ob_digits_path
+    #, m_digits_path
+    #, hubben1_path
+    #, hubben2_path
+    #, hubben3_path
+    #, hubben4_path
 ]
 
 print("===== LOADING DIGITS =====")
@@ -185,6 +208,6 @@ print("===== LOADING DIGITS =====")
 data_dict, labels = load_process_digits(digit_paths)
 print(data_dict)
 data_dict['labels'] = labels
-#utils.save_processed_data(data_dict,'combined_testing_data')
+utils.save_processed_data(data_dict,'combined_testing_data')
 
 print("Script done running")

@@ -38,5 +38,6 @@ def test_classification_err(model, test_data, test_labels):
 
 def shannon_entropy(model, test_data, test_labels):
     predictions = model.predict(test_data)
-    bits=entropy(predictions.transpose(), base=2)
+    bits = np.array(list(map(entropy, predictions)))
+    #bits = entropy(predictions.transpose())
     return np.mean(bits)

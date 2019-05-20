@@ -113,27 +113,18 @@ def experiment(network_model, reshape_mode = 'mlp'):
     reshape_fun = reshape_funs[reshape_mode]
     xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
-    ensemble_cerror = []
-    entropy_ensemble = []
-    #ensemble_adv_cerror = []
-    #ensemble_adv_entropy = []
-    digits_cerror = []
-    digits_entropy = []
-    #digits_adv_cerror = []
-    #digits_adv_entropy = []
-
     for t in range(trials):
         # Preparing Results
         # Classification Error
-        t_ensemble_cerror = []
+        ensemble_cerror = []
         #t_ensemble_adv_cerror = []
-        t_digits_cerror = []
+        digits_cerror = []
         #t_digits_adv_cerror = []
 
         # Prediction Entropy
-        t_entropy_ensemble = []
+        entropy_ensemble = []
         #t_entropy_adv_ensemble = []
-        t_digits_entropy = []
+        digits_entropy = []
         #t_digits_adv_entropy = []
 
         # Voting entropy
@@ -172,14 +163,14 @@ def experiment(network_model, reshape_mode = 'mlp'):
             c_error = ann.test_model(merge_model, [xtest]*m, ytest, metric = 'accuracy' )
             entropy = ann.test_model(merge_model, [xtest]*m, ytest, metric = 'entropy' )
 
-            t_ensemble_cerror.append(c_error)
-            t_entropy_ensemble.append(entropy)
+            ensemble_cerror.append(c_error)
+            entropy_ensemble.append(entropy)
             #entropy_vote.append(calc_vote_entropy(model_list,m,xtest))
 
             d_cerror,d_entropy,d_vote = test_digits(merge_model,model_list,m,digits_data,digits_labels)
 
-            t_digits_cerror.append(d_cerror)
-            t_digits_entropy.append(d_entropy)
+            digits_cerror.append(d_cerror)
+            digits_entropy.append(d_entropy)
 
             #digits_vote.append(d_vote)
             # Adveserial training
@@ -200,37 +191,34 @@ def experiment(network_model, reshape_mode = 'mlp'):
 #
             #t_digits_adv_cerror.append(d_cerror)
             #t_digits_adv_entropy.append(d_entropy)
-        ensemble_cerror.append(t_ensemble_cerror)
-        entropy_ensemble.append(t_entropy_ensemble)
-        digits_cerror.append(t_digits_cerror)
-        digits_entropy.append(t_digits_entropy)
 
+        filename1 = 'mnist_results_5-20-50-trial%s' % t
+        filename2 = 'digits_results_5-20-50-trial%s' % t
 
-    mnist_results = {
-        'ensemble_cerror' : ensemble_cerror,
-        'ensemble_entropy' : entropy_ensemble,
-        #'ensemble_adv_cerror' : ensemble_adv_cerror,
-        #'ensemble_adv_entropy' : entropy_adv_ensemble,
-        'voting_entropy' : entropy_vote
-        #'voting_adv_entropy' : entropy_adv_vote
-    }
+        mnist_results = {
+            'ensemble_cerror' : ensemble_cerror,
+            'ensemble_entropy' : entropy_ensemble
+            #'ensemble_adv_cerror' : ensemble_adv_cerror,
+            #'ensemble_adv_entropy' : entropy_adv_ensemble,
+            #'voting_entropy' : entropy_vote
+            #'voting_adv_entropy' : entropy_adv_vote
+        }
 
-    print(mnist_results)
-
-    digits_results = {
-        'ensemble_cerror' : digits_cerror,
-        'ensemble_entropy' : digits_entropy,
-        #'ensemble_adv_cerror' : digits_adv_cerror,
-        #'ensemble_adv_entropy' : digits_adv_entropy,
-        'voting_entropy' : digits_vote
-        #'voting_adv_entropy' : digits_adv_vote
-    }
+        digits_results = {
+            'ensemble_cerror' : digits_cerror,
+            'ensemble_entropy' : digits_entropy
+            #'ensemble_adv_cerror' : digits_adv_cerror,
+            #'ensemble_adv_entropy' : digits_adv_entropy,
+            #'voting_entropy' : digits_vote
+            #'voting_adv_entropy' : digits_adv_vote
+        }
     
+
+        utils.save_processed_data(mnist_results,filename1)
+        utils.save_processed_data(digits_results,filename2)
+
     return digits_taus, mnist_results, digits_results
 
 utils.setup_gpu_session()
 
 taus, mnist_results ,digits_results = experiment(network_model1, 'mlp')
-
-utils.save_processed_data(mnist_results,'mnist_results_5-20-50')
-utils.save_processed_data(digits_results,'digits_results_5-20-50')

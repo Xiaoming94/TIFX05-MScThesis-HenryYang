@@ -75,7 +75,7 @@ def unpad_img(img):
 def change_linewidth(img, radius):
     def find_new_pixval(img, newimg, x, y, radius,search_coords):
         (height,width) = img.shape
-        pixels = []
+        pixels = set()
         for rx,ry in search_coords:
             # Bounding the coordinates
             drx = max(x + rx, 0)
@@ -83,7 +83,7 @@ def change_linewidth(img, radius):
             dry = max(y + ry, 0)
             dry = min(dry, height-1)
 
-            pixels.append(img[dry,drx])
+            pixels.add(img[dry,drx])
         
         newimg[y,x] = max(pixels) if radius > 0 else min(pixels)
 

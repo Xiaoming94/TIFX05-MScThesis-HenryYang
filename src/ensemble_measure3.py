@@ -4,11 +4,12 @@ import keras.losses as klosses
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import entropy
+import gc
 
-ensemble_size = 4
-chunksize = 2
+ensemble_size = 100
+chunksize = 20
 
-trials = 2
+trials = 20
 
 network_model2 = '''
 {
@@ -124,7 +125,10 @@ def experiment(network_model, reshape_mode = 'mlp'):
     reshape_fun = reshape_funs[reshape_mode]
     xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
-    for t in range(trials):
+    for t in range(2,trials):
+        gc.collect()
+        
+        print("===== TRIAL %s =====" % (t + 1))
         # Preparing Results
         # Classification Error
         ensemble_cerror = []
@@ -150,7 +154,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
         digits_data = list(map(reshape_fun, [custom_digits_dict[t] for t in digits_taus]))
         digits_labels = utils.create_one_hot(digits_labels.astype('uint'))
 
-        epochs = 3
+        epochs = 5
 
         nchunks = ensemble_size // chunksize
 
@@ -160,7 +164,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
             member_pred_digits[tau] = []
 
         for _ in range(nchunks):
-            print('Working now with ensemble of size m = %s' % ensemble_size)
+
             l_xtrain = []
             l_xval = []
             l_ytrain = []
@@ -223,8 +227,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
             #t_digits_adv_cerror.append(d_cerror)
             #t_digits_adv_entropy.append(d_entropy)
 
-        filename1 = 'mnist_results_100-trial%s' % t
-        filename2 = 'digits_results_100-trial%s' % t
+        filename1 = 'mnist_results_100-trial%s' % (t + 1)
+        filename2 = 'digits_results_100-trial%s' % (t + 1)
 
         mnist_results = {
             'ensemble_cerror' : ensemble_cerror,

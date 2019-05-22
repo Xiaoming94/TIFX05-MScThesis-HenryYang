@@ -85,17 +85,17 @@ def calc_cerror(preds,labels):
     return cerr
 
 def thickness_sim(model_list, data, labels ,thicknesses):
-    
+
     m_preds = {}
     m_bits = {}
     m_cerr = {}
 
     for d,t in zip(digits,thicknesses):
-        
+
         m_preds[t] = list(map(lambda m: m.predict(d), model_list))
         m_cerr[t] = list(map(lambda m: ann.test_model(m,d,labels,"c_error"), model_list))
         m_bits[t] = list(map(lambda m: ann.test_model(m,d,labels,"entropy"), model_list))
-   
+
     return m_preds, m_cerr, m_bits
 
 #mnist_linethickness = 66.97000583000295 ## Obtained from running mnistlinewidth.py file
@@ -104,9 +104,9 @@ mnist_linethickness = 14.095163376059986
 
 epochs = 5
 
-ensemblesize = 2
+ensemblesize = 100
 
-chunksize = 1
+chunksize = 25
 
 nchunks = ensemblesize // chunksize
 
@@ -127,6 +127,7 @@ digits = list(map(reshape_fun, [digits_data[t] for t in taus]))
 digits = list(map(utils.normalize_data, digits))
 labels = utils.create_one_hot(digits_data['labels'].astype('uint'))    
 
+
 mnist_mpreds = []
 digits_mpreds = {}
 mnist_mcerr = []
@@ -141,7 +142,7 @@ for t in taus:
 
 for _ in range(nchunks):
     print("====== START TRAINING NEURAL NETWORK MODEL ======")
-    
+
     l_xtrain = []
     l_xval = []
     l_ytrain = []
@@ -186,7 +187,7 @@ results = {
         "mnist_bits" : mnist_bits,
         "mnist_cerr" : mnist_cerr,
         "digits_cerr" : digits_cerr,
-        "digits_bits" : digits_bits 
+        "digits_bits" : digits_bits
     },
     "individuals": {
         "mnist_bits" : mnist_mbits,
@@ -196,7 +197,6 @@ results = {
     }
 }
 
-t = time.time()
 
 utils.save_processed_data(results, "results_ltsim_100")
 

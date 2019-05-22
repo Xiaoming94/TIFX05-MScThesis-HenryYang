@@ -7,9 +7,9 @@ from scipy.stats import entropy
 import gc
 
 ensemble_size = 100
-chunksize = 20
+chunksize = 25
 
-trials = 20
+trials = 10
 
 network_model2 = '''
 {
@@ -85,10 +85,10 @@ def calc_vote_entropy(model_list, ensemble_size, digits):
         pred = m.predict(digits)
         votes = ann.classify(pred)
         vote_mat += votes
-    
+
     vote_rate = vote_mat * 1/ensemble_size
     return np.mean(entropy(vote_rate.transpose()))
-    
+
 
 
 def test_digits(model_list ,digits, thicknesses):
@@ -133,8 +133,9 @@ def experiment(network_model, reshape_mode = 'mlp'):
     digits_labels = utils.create_one_hot(digits_labels.astype('uint'))
 
     for t in range(2,trials):
+
         gc.collect()
-        
+
         print("===== TRIAL %s =====" % (t + 1))
         # Preparing Results
         # Classification Error
@@ -187,8 +188,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
             mpred_digits = test_digits(model_list, digits_data, digits_taus)
             for tau in digits_taus:
                 member_pred_digits[tau].extend(mpred_digits[tau])
-        
-        
+
+
         c_error, entropy = ensemble_measures(np.array(member_pred_mnist),ytest)
 
         ensemble_cerror.append(c_error)
@@ -248,7 +249,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
             #'voting_entropy' : digits_vote
             #'voting_adv_entropy' : digits_adv_vote
         }
-    
+
 
         utils.save_processed_data(mnist_results,filename1)
         utils.save_processed_data(digits_results,filename2)

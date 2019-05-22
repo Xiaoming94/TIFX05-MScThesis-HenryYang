@@ -113,6 +113,12 @@ def experiment(network_model, reshape_mode = 'mlp'):
     reshape_fun = reshape_funs[reshape_mode]
     xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
+    custom_digits_dict = utils.load_processed_data("combined_testing_data")
+    digits_labels = custom_digits_dict['labels']
+    digits_taus = list(custom_digits_dict.keys())[:-1]
+    digits_data = list(map(reshape_fun, [custom_digits_dict[t] for t in digits_taus]))
+    digits_data = list(map(utils.normalize_data, digits_data))
+    digits_labels = utils.create_one_hot(digits_labels.astype('uint'))
     for t in range(trials):
         # Preparing Results
         # Classification Error
@@ -132,12 +138,6 @@ def experiment(network_model, reshape_mode = 'mlp'):
         #entropy_adv_vote = []
         #digits_vote = []
         #digits_adv_entropy = []
-
-        custom_digits_dict = utils.load_processed_data("combined_testing_data")
-        digits_labels = custom_digits_dict['labels']
-        digits_taus = list(custom_digits_dict.keys())[:-1]
-        digits_data = list(map(reshape_fun, [custom_digits_dict[t] for t in digits_taus]))
-        digits_labels = utils.create_one_hot(digits_labels.astype('uint'))
 
         epochs = 3
 

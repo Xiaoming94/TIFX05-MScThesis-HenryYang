@@ -124,8 +124,8 @@ utils.setup_gpu_session()
 digits_data = utils.load_processed_data("combined_testing_data")
 taus = list(digits_data.keys())[:-1]
 digits = list(map(reshape_fun, [digits_data[t] for t in taus]))
+digits = list(map(utils.normalize_data, digits))
 labels = utils.create_one_hot(digits_data['labels'].astype('uint'))    
-
 
 mnist_mpreds = []
 digits_mpreds = {}

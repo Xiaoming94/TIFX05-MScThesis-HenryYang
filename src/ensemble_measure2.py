@@ -221,4 +221,4 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
 utils.setup_gpu_session()
 
-taus, mnist_results ,digits_results = experiment(network_model1, 'mlp')
+taus, mnist_results ,digits_results = experiment(network_model2, 'conv')

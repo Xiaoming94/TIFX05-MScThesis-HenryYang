@@ -99,7 +99,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
         mnist_wrong.extend(wrong)
 
         for d in digits:
-            digits_preds = merge_model.predict(d)
+            digits_preds = merge_model.predict([d]*ensemble_size)
             correct, wrong = bin_entropies(digits_preds,d_labels)
             digits_wrong.extend(wrong)
             digits_correct.extend(correct)

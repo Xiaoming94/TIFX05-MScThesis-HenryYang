@@ -122,12 +122,14 @@ def calc_linewidth(imgs):
         tau = np.mean(thicknesses)
     return tau
 
-def load_image(img_path):
+def load_image(img_path,bw):
     img = cv2.imread(img_path, 0)
     img = cv2.bitwise_not(img)
+    if bw:
+        _, img = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     return img
 
-def load_image_data(img_dir_path, side=20, padding=4, unpad=True):
+def load_image_data(img_dir_path, side=20, padding=4, unpad=True, bw = False):
     """
     Function that loades images of handwritten digits, applying preprocessing on them
     and finally returns them as numpy arrays.
@@ -151,7 +153,7 @@ def load_image_data(img_dir_path, side=20, padding=4, unpad=True):
     The list of images as a 2d numpy array.
     Array of labels for the images
     """
-    img_list, labels = load_images(img_dir_path)
+    img_list, labels = load_images(img_dir_path,bw)
 
     if (unpad):
         img_list = list(map(unpad_img, img_list))
@@ -161,12 +163,12 @@ def load_image_data(img_dir_path, side=20, padding=4, unpad=True):
     ,img_list))
     return np.array(img_list), labels
 
-def load_images(img_dir_path):
+def load_images(img_dir_path,bw):
     images = os.listdir(img_dir_path)
     img_list = []
     labels = []
     for img in images:
-        img_list.append(load_image(os.path.join(img_dir_path,img)))
+        img_list.append(load_image(os.path.join(img_dir_path,img),bw))
         labels.append(int(img[0]))
     
     return img_list, np.array(labels, dtype=np.int)

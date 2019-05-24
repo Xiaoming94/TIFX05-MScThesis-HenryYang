@@ -174,7 +174,8 @@ bw, bw_small, optimal_lw, labels = load_process_digits(digit_paths)
 data_dict = {
     'lecunn_big' : bw,
     'lecunn' : bw_small,
-    'optimal_lw' : optimal_lw
+    'optimal_lw' : optimal_lw,
+    'labels' : labels
 }
 
 utils.save_processed_data(data_dict,'digits_og_and_optimal')

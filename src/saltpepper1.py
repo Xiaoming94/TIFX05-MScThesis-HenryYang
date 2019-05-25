@@ -147,12 +147,12 @@ def experiment(network_model, reshape_mode = 'mlp'):
     digits = digits_data['optimal_lw']
     labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
 
-    ensemble_size = 20
-    epochs = 5
+    ensemble_size = 2
+    epochs = 1
     small_digits = reshape_fun(np.array(list(map(scale_down, digits))))
     trials = 10
 
-    for t in range(1,trials+1)
+    for t in range(1,trials+1):
         l_xtrain = []
         l_xval = []
         l_ytrain = []

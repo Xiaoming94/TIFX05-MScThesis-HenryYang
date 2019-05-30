@@ -33,6 +33,47 @@ network_model1 = '''
 }
 '''
 
+network_model2 = '''
+{
+    "input_shape" : [28,28,1],
+    "layers" : [
+        {
+            "type" : "Conv2D",
+            "units" : 16,
+            "kernel_size" : [3,3],
+            "activation" : "relu"
+        },
+        {
+            "type" : "BatchNormalization",
+            "axis" : -1
+        },
+        {
+            "type" : "Conv2D",
+            "units" : 32,
+            "kernel_size" : [3,3],
+            "activation" : "relu"
+        },
+        {
+            "type" : "BatchNormalization",
+            "axis" : -1
+        },
+        {
+            "type" : "MaxPooling2D",
+            "pool_size" : [2,2],
+            "strides" : [2,2]
+        },
+        {
+            "type" : "Flatten"
+        },
+        {
+            "type" : "Dense",
+            "units" : 10,
+            "activation" : "softmax"
+        }
+    ]
+}
+'''
+
 def bin_entropies(preds, labels):
     bits = list(map(stats.entropy, preds))
     classes = ann.classify(preds)
@@ -72,7 +113,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     d2_labels = utils.create_one_hot(digits_data2['labels'].astype('uint'))
 
     ensemble_size = 20
-    epochs = 5
+    epochs = 3
     trials = 5
 
     mnist_correct = []
@@ -127,8 +168,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
     return ensemble
 
-ensemble = experiment(network_model1, 'mlp')
-utils.save_processed_data(ensemble , "entropy5trial-bins")
+ensemble = experiment(network_model2, 'conv')
+utils.save_processed_data(ensemble , "cnn_entropy5trial-bins")
 
 #plt.figure()
 #plt.subplot(221)

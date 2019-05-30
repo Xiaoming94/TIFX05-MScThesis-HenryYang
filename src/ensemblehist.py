@@ -60,12 +60,15 @@ def experiment(network_model, reshape_mode = 'mlp'):
     xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
     digits_data = utils.load_processed_data('combined_testing_data')
+    digits_data2 = utils.load_processed_data('digits_og_and_optimal')
     taus = [13,14,15]
 
     digits = list(map(reshape_fun, [digits_data[t] for t in taus]))
     digits = list(map(utils.normalize_data, digits))
-
+    digits_og = reshape_fun(digits_data2['lecunn'])
+    digits_og = utils.normalize_data(digits_og)
     d_labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
+    d2_labels = utils.create_one_hot(digits_data2['labels'].astype('uint'))
 
     ensemble_size = 20
     epochs = 5
@@ -94,9 +97,17 @@ def experiment(network_model, reshape_mode = 'mlp'):
         correct, wrong = bin_entropies(mp,ytest)
         mnist_mnwrong.extend(wrong)
         mnist_mncorrect.extend(correct)
-
-    mnist_preds = mnist_mpreds.mean(axis=0)
     
+    d2_preds = np.array(list(map(lambda m: m.predict(digits_og), model_list)))
+    d2_mnwrong = []
+    d2_mncorrect = []
+
+    for mp in d2_preds:
+        correct, wrong = bin_entropies(mp,d2_labels)
+        d2_mnwrong.extend(wrong)
+        d2_mncorrect.extend(correct)
+    
+
     digits_mnwrong = []
     digits_mncorrect = []
     for d in digits:
@@ -110,7 +121,9 @@ def experiment(network_model, reshape_mode = 'mlp'):
         'mnist_correct' : mnist_mncorrect,
         'mnist_wrong' : mnist_mnwrong,
         'digits_correct' : digits_mncorrect,
-        'digits_wrong' : digits_mnwrong
+        'digits_wrong' : digits_mnwrong,
+        'lecunn_correct' : d2_mncorrect,
+        'lecunn_wrong' : d2_mnwrong
     }
 
     return individual
@@ -118,21 +131,28 @@ def experiment(network_model, reshape_mode = 'mlp'):
 individual = experiment(network_model1, 'mlp')
 
 plt.figure()
-plt.subplot(221)
+plt.subplot(231)
 plt.hist(individual['mnist_correct'],color = 'blue')
 plt.xlabel('entropy')
-plt.ylabel('ncorrect')
-plt.subplot(222)
-plt.hist(individual['mnist_wrong'],color = 'red')
+plt.ylabel('n_correct')
+plt.subplot(232)
+plt.hist(individual['lecunn_correct'],color = 'blue')
 plt.xlabel('entropy')
-plt.ylabel('nwrong')
-plt.subplot(223)
+plt.ylabel('n_correct')
+plt.subplot(233)
 plt.hist(individual['digits_correct'],color = 'blue')
 plt.xlabel('entropy')
-plt.ylabel('ncorrect')
-plt.subplot(224)
+plt.ylabel('n_correct')
+plt.subplot(234)
+plt.hist(individual['mnist_wrong'],color = 'red')
+plt.xlabel('entropy')
+plt.ylabel('n_wrong')
+plt.subplot(235)
+plt.hist(individual['lecunn_wrong'],color = 'red')
+plt.xlabel('entropy')
+plt.ylabel('n_wrong')
+plt.subplot(236)
 plt.hist(individual['digits_wrong'],color = 'red')
 plt.xlabel('entropy')
-plt.ylabel('nwrong')
-
+plt.ylabel('n_wrong')
 plt.show()

@@ -60,12 +60,16 @@ def experiment(network_model, reshape_mode = 'mlp'):
     xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
     digits_data = utils.load_processed_data('combined_testing_data')
+    digits_data2 = utils.load_processed_data('digits_og_and_optimal')
     taus = [13,14,15]
 
     digits = list(map(reshape_fun, [digits_data[t] for t in taus]))
     digits = list(map(utils.normalize_data, digits))
+    digits_og = reshape_fun(digits_data2['lecunn'])
+    digits_og = utils.normalize_data(digits_og)
 
     d_labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
+    d2_labels = utils.create_one_hot(digits_data2['labels'].astype('uint'))
 
     ensemble_size = 20
     epochs = 5
@@ -75,6 +79,9 @@ def experiment(network_model, reshape_mode = 'mlp'):
     mnist_wrong = []
     digits_wrong = []
     digits_correct = []
+    d2_wrong = []
+    d2_correct = []
+
 
     for t in range(trials):
 
@@ -98,6 +105,11 @@ def experiment(network_model, reshape_mode = 'mlp'):
         mnist_correct.extend(correct)
         mnist_wrong.extend(wrong)
 
+        d2_preds = merge_model.predict([digits_og]*ensemble_size)
+        correct, wrong = bin_entropies(d2_preds, d2_labels)
+        d2_correct.extend(correct)
+        d2_wrong.extend(wrong)
+
         for d in digits:
             digits_preds = merge_model.predict([d]*ensemble_size)
             correct, wrong = bin_entropies(digits_preds,d_labels)
@@ -108,7 +120,9 @@ def experiment(network_model, reshape_mode = 'mlp'):
             'mnist_correct' : mnist_correct,
             'mnist_wrong' : mnist_wrong,
             'digits_correct' : digits_correct,
-            'digits_wrong' : digits_wrong
+            'digits_wrong' : digits_wrong,
+            'lecunn_correct' : d2_correct,
+            'lecunn_wrong' : d2_wrong
         }
 
     return ensemble

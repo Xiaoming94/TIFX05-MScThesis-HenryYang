@@ -140,8 +140,6 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
         epochs = 3
 
-        
-        print('Working now with ensemble of size m = %s' % m)
         l_xtrain = []
         l_xval = []
         l_ytrain = []

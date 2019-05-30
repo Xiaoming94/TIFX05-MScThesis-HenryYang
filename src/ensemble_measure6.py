@@ -117,8 +117,6 @@ def experiment(network_model, reshape_mode = 'mlp'):
     digits_data = list(map(utils.normalize_data, digits_data))
     digits_labels = utils.create_one_hot(digits_labels.astype('uint'))
 
-    og_digits = utils.
-
     for t in range(trials):
         print("===== START TRIAL %s =====" % (t + 1))
         # Preparing Results

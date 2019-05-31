@@ -147,8 +147,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
     digits = digits_data['optimal_lw']
     labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
 
-    ensemble_size = 2
-    epochs = 1
+    ensemble_size = 20
+    epochs = 3
     small_digits = reshape_fun(np.array(list(map(scale_down, digits))))
     trials = 10
 
@@ -177,12 +177,12 @@ def experiment(network_model, reshape_mode = 'mlp'):
         results['c_error'][0] = c_error
         results['entropy'][0] = entropy
 
-        filename = "saltpepper_leftright_trial-%s" % t
+        filename = "conv_saltpepper_leftright_trial-%s" % t
         utils.save_processed_data(results, filename)
 
 
 
 utils.setup_gpu_session()
-experiment(network_model1, 'mlp')
+experiment(network_model2, 'conv')
 
 print("Script Done")

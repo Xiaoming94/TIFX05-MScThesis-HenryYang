@@ -6,8 +6,8 @@ import numpy as np
 from scipy.stats import entropy
 import gc
 
-ensemble_size = 10
-chunksize = 5
+ensemble_size = 100
+chunksize = 20
 
 trials = 5
 
@@ -93,7 +93,7 @@ def vote_predict(preds,ensemble_size):
     votes = 0
     for p in preds:
         votes += ann.classify(p)
-        
+
     return votes/ensemble_size
 
 def test_digits(model_list ,digits, thicknesses):
@@ -153,7 +153,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
         #digits_vote = []
         #digits_adv_entropy = []
 
-        epochs = 1
+        epochs = 5
 
         nchunks = ensemble_size // chunksize
 

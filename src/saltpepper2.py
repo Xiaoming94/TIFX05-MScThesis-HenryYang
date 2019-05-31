@@ -2,6 +2,7 @@ import utils
 import ANN as ann
 import numpy as np
 import cv2
+import gc
 
 import matplotlib.pyplot as plt
 
@@ -93,7 +94,7 @@ def salt_and_pepper(digits,num):
             noice_img[x,y] = 0 if (noice_img[x,y] != 0) else 255
         dnoice.append(scale_down(noice_img))
 
-    return np.array(dnoice) 
+    return np.array(dnoice)
 
 def test_digits(model, digits, labels, ensemble_size, reshape_fun):
     steps_results = {
@@ -101,11 +102,11 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
         'entropy' : {}
     }
 
-    dnum = 100
+    dnum = 200
 
-    for i in range(1,21):
+    for i in range(1,101):
         dnoice = salt_and_pepper(digits,i * dnum)
-        
+
         d = utils.normalize_data(reshape_fun(dnoice))
         entropy = ann.test_model(model, [d]*ensemble_size, labels, metric = 'entropy')
         c_error = ann.test_model(model, [d]*ensemble_size, labels, metric = 'c_error')
@@ -131,9 +132,13 @@ def experiment(network_model, reshape_mode = 'mlp'):
     ensemble_size = 20
     epochs = 3
     small_digits = reshape_fun(np.array(list(map(scale_down, digits))))
-    
+
     trials = 5
+
     for t in range(1,trials+1):
+
+        gc.collect()
+
         l_xtrain = []
         l_xval = []
         l_ytrain = []

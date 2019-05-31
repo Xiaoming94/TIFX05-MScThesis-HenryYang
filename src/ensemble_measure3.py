@@ -132,7 +132,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     digits_data = list(map(utils.normalize_data, digits_data))
     digits_labels = utils.create_one_hot(digits_labels.astype('uint'))
 
-    for t in range(2,trials):
+    for t in range(trials):
 
         gc.collect()
 
@@ -156,7 +156,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
         #digits_vote = []
         #digits_adv_entropy = []
 
-        epochs = 5
+        epochs = 3
 
         nchunks = ensemble_size // chunksize
 
@@ -229,8 +229,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
             #t_digits_adv_cerror.append(d_cerror)
             #t_digits_adv_entropy.append(d_entropy)
 
-        filename1 = 'mnist_results_100-trial%s' % (t + 1)
-        filename2 = 'digits_results_100-trial%s' % (t + 1)
+        filename1 = 'cnn_mnist_results_100-trial%s' % (t + 1)
+        filename2 = 'cnn_digits_results_100-trial%s' % (t + 1)
 
         mnist_results = {
             'ensemble_cerror' : ensemble_cerror,
@@ -258,4 +258,4 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
 utils.setup_gpu_session()
 
-taus, mnist_results ,digits_results = experiment(network_model1, 'mlp')
+taus, mnist_results ,digits_results = experiment(network_model2, 'conv')

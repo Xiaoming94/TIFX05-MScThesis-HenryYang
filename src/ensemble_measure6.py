@@ -83,10 +83,10 @@ def calc_vote_entropy(model_list, ensemble_size, digits):
         pred = m.predict(digits)
         votes = ann.classify(pred)
         vote_mat += votes
-    
+
     vote_rate = vote_mat * 1/ensemble_size
     return np.mean(entropy(vote_rate.transpose()))
-    
+
 
 
 def test_digits(model, model_list, ensemble_size ,digits, labels):
@@ -97,7 +97,7 @@ def test_digits(model, model_list, ensemble_size ,digits, labels):
         entropy = ann.test_model(model, [d]*ensemble_size, labels, metric = 'entropy')
         l_c_errors.append(c_error)
         l_pred_entropy.append(entropy)
-    
+
     return l_c_errors, l_pred_entropy
 
 
@@ -138,7 +138,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
         #digits_vote = []
         #digits_adv_entropy = []
 
-        epochs = 3
+        epochs = 5
 
         l_xtrain = []
         l_xval = []
@@ -163,7 +163,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
         ensemble_cerror.append(c_error)
         entropy_ensemble.append(entropy)
         #entropy_vote.append(calc_vote_entropy(model_list,m,xtest))
-        d_cerror,d_entropy = test_digits(merge_model,model_list,m,digits_data,digits_labels)
+        d_cerror,d_entropy = test_digits(merge_model,model_list,ensemble_size,digits_data,digits_labels)
         digits_cerror.append(d_cerror)
         digits_entropy.append(d_entropy)
 
@@ -207,7 +207,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
             #'voting_entropy' : digits_vote
             #'voting_adv_entropy' : digits_adv_vote
         }
-    
+
 
         utils.save_processed_data(mnist_results,filename1)
         utils.save_processed_data(digits_results,filename2)
@@ -216,4 +216,4 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
 utils.setup_gpu_session()
 
-taus, mnist_results ,digits_results = experiment(network_model2, 'conv')
+taus, mnist_results ,digits_results = experiment(network_model1, 'mlp')

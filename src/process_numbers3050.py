@@ -208,6 +208,6 @@ print("===== LOADING DIGITS =====")
 data_dict, labels = load_process_digits(digit_paths)
 print(data_dict)
 data_dict['labels'] = labels
-utils.save_processed_data(data_dict,'combined_testing_data')
+utils.save_processed_data(data_dict,'combined_testing_data3150')
 
 print("Script done running")

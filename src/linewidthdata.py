@@ -2,6 +2,7 @@ import utils
 from utils import digitutils as dutils
 import ANN as ann
 import numpy as np
+import cv2
 
 network_model1 = '''
 {
@@ -89,8 +90,7 @@ def resize_helper(img):
 def calc_linewidths(data):
     taus = np.zeros(data.shape[0])
     for i,d in zip(range(data.shape[0]),data):
-        img = resize_helper(d)
-        taus[i] = dutils.intern_calc_linewidth(img)
+            taus[i] = dutils.intern_calc_linewidth(d)
 
     return np.mean(taus), np.var(taus)
 
@@ -115,52 +115,53 @@ def calc_acc():
 
         reshape_fun = reshape_funs['mlp']
 
-        t_xtrain,xtest = reshape_fun(t_xtrain), reshape_fun(xtest)
+        t_xtrain,c_xtest = reshape_fun(t_xtrain), reshape_fun(xtest)
+        xval = reshape_fun(xval)
         c_digits = reshape_fun(digits)
 
         model = ann.parse_model_js(network_model2)
         model.compile(optimizer = 'adam',loss = 'categorical_crossentropy',metrics = ['acc'])
-        model.fit(t_xtrain,t_ytrain, epochs = epochs, validation_data = (xval,yval))
+        model.fit(t_xtrain,t_ytrain, epochs = 5, validation_data = (xval,yval))
     
-        acc_mnist = ann.test_model(model, c_xtest, ytest, metric = 'accuracy')
-        bits_mnist = ann.test_model(model, c_xtest, ytest, metric = 'entropy')
-        acc_digits = ann.test_model(model, c_digits, ytest, metric = 'accuracy')
-        bits_digits = ann.test_model(model, c_digits, ytest, metric = 'entropy')
+        acc_mnist[i] = ann.test_model(model, c_xtest, ytest, metric = 'accuracy')
+        bits_mnist[i] = ann.test_model(model, c_xtest, ytest, metric = 'entropy')
+        acc_digits[i] = ann.test_model(model, c_digits, digits_labels, metric = 'accuracy')
+        bits_digits[i] = ann.test_model(model, c_digits, digits_labels, metric = 'entropy')
 
         reshape_fun = reshape_funs['conv']
-        t_xtrain,xtest = reshape_fun(t_xtrain), reshape_fun(xtest)
+        t_xtrain,c_xtest = reshape_fun(t_xtrain), reshape_fun(xtest)
+        xval = reshape_fun(xval)
         c_digits = reshape_fun(digits)
 
         model = ann.parse_model_js(network_model1)
         model.compile(optimizer = 'adam',loss = 'categorical_crossentropy',metrics = ['acc'])
-        model.fit(t_xtrain,t_ytrain, epochs = epochs, validation_data = (xval,yval))
+        model.fit(t_xtrain,t_ytrain, epochs = 3, validation_data = (xval,yval))
     
-        cnn_acc_mnist = ann.test_model(model, c_xtest, ytest, metric = 'accuracy')
-        cnn_bits_mnist = ann.test_model(model, c_xtest, ytest, metric = 'entropy')
-        cnn_acc_digits = ann.test_model(model, c_digits, ytest, metric = 'accuracy')
-        cnn_bits_digits = ann.test_model(model, c_digits, ytest, metric = 'entropy')
+        cnn_acc_mnist[i] = ann.test_model(model, c_xtest, ytest, metric = 'accuracy')
+        cnn_bits_mnist[i] = ann.test_model(model, c_xtest, ytest, metric = 'entropy')
+        cnn_acc_digits[i] = ann.test_model(model, c_digits, digits_labels, metric = 'accuracy')
+        cnn_bits_digits[i] = ann.test_model(model, c_digits, digits_labels, metric = 'entropy')
 
     results_mlp = {
         'mnist_acc' : acc_mnist,
-        'mnist_bits' : bits_mnist
-        'digits_acc' : acc_digits
+        'mnist_bits' : bits_mnist,
+        'digits_acc' : acc_digits,
         'digits_bits' : bits_digits
     }
 
     results_cnn = {
         'mnist_acc' :  cnn_acc_mnist,
-        'mnist_bits' : cnn_bits_mnist
-        'digits_acc' : cnn_acc_digits
+        'mnist_bits' : cnn_bits_mnist,
+        'digits_acc' : cnn_acc_digits,
         'digits_bits' : cnn_bits_digits
     }
 
     utils.save_processed_data(results_mlp,'100-trials-mlp')
     utils.save_processed_data(results_cnn, '100-trials-cnn')
 
-mnist_mean, mnist_var = calc_linewidths(xtest)
-digits_mean, digits_var = calc_linewidths(digits)
-
-print('mnist: (mean %s, var %s)' % (mnist_mean, mnist_var))
-print('digits: (mean %s, var %s' % (digits_mean, digits_var))
-
+#mnist_mean, mnist_var = calc_linewidths(xtest)
+#digits_mean, digits_var = calc_linewidths(digits)
+#print('mnist: (mean %s, var %s)' % (mnist_mean, mnist_var))
+#print('digits: (mean %s, var %s)' % (digits_mean, digits_var))
+utils.setup_gpu_session()
 calc_acc()

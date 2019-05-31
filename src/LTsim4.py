@@ -117,7 +117,7 @@ reshape_funs = {
     "conv" : lambda d : d.reshape(-1,28,28,1),
     "mlp" : lambda d : d.reshape(-1,784)
 }
-reshape_fun = reshape_funs['mlp']
+reshape_fun = reshape_funs['conv']
 xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
 utils.setup_gpu_session()
@@ -154,7 +154,7 @@ for _ in range(nchunks):
         l_ytrain.append(t_ytrain)
         l_yval.append(t_yval)
 
-    inputs, outputs, train_model, model_list, _ = ann.build_ensemble([network_model2],chunksize,None)
+    inputs, outputs, train_model, model_list, _ = ann.build_ensemble([network_model1],chunksize,None)
     train_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=['accuracy'])
     train_model.fit(l_xtrain,l_ytrain, verbose=1, validation_data=(l_xval,l_yval),epochs=epochs)
     m_mpreds = list(map(lambda m: m.predict(xtest), model_list))
@@ -198,5 +198,5 @@ results = {
 }
 
 
-utils.save_processed_data(results, "results_ltsim_100")
+utils.save_processed_data(results, "cnn_results_ltsim_100")
 

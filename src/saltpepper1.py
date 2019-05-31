@@ -2,6 +2,7 @@ import utils
 import ANN as ann
 import numpy as np
 import cv2
+import gc
 
 import matplotlib.pyplot as plt
 
@@ -96,7 +97,7 @@ def salt_and_pepper(digits,num):
                 [x,y] = nonzeros[i]
                 img_dl[x,y] = 0
             dless.append(scale_down(img_dl))
-        
+
         # adding black pixels
         if zeros.shape[0] < num:
             dmore.append(np.ones((28,28)))
@@ -107,7 +108,7 @@ def salt_and_pepper(digits,num):
                 [x,y] = zeros[i]
                 img_more[x,y] = 255
             dmore.append(scale_down(img_more))
-    
+
     return np.array(dless), np.array(dmore)
 
 def test_digits(model, digits, labels, ensemble_size, reshape_fun):
@@ -116,11 +117,11 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
         'entropy' : {}
     }
 
-    dnum = 100
+    dnum = 50
 
-    for i in range(1,21):
+    for i in range(1,101):
         dless, dmore = salt_and_pepper(digits,i * dnum)
-        
+
         d = utils.normalize_data(reshape_fun(dmore))
         entropy = ann.test_model(model, [d]*ensemble_size, labels, metric = 'entropy')
         c_error = ann.test_model(model, [d]*ensemble_size, labels, metric = 'c_error')
@@ -153,6 +154,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
     trials = 10
 
     for t in range(1,trials+1):
+        gc.collect()
+
         l_xtrain = []
         l_xval = []
         l_ytrain = []

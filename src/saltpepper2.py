@@ -129,10 +129,10 @@ def experiment(network_model, reshape_mode = 'mlp'):
     labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
 
     ensemble_size = 20
-    epochs = 5
+    epochs = 3
     small_digits = reshape_fun(np.array(list(map(scale_down, digits))))
     
-    trials = 10
+    trials = 5
     for t in range(1,trials+1):
         l_xtrain = []
         l_xval = []
@@ -172,14 +172,14 @@ def experiment(network_model, reshape_mode = 'mlp'):
         }
 
 
-        filename = "saltpepper_random_trial-%s" % t
+        filename = "conv_saltpepper_random_trial-%s" % t
         utils.save_processed_data(total_results, filename)
 
 
 
 
 utils.setup_gpu_session()
-experiment(network_model1, 'mlp')
+experiment(network_model2, 'conv')
 
 #results_linewidth = results['optimal_lw']
 #results_lecunn = results['lecunn']

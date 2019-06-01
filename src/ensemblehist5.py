@@ -73,6 +73,26 @@ network_model2 = '''
     ]
 }
 '''
+def scale_down(img):
+    downscaled =  cv2.resize(img, (28,28), interpolation=cv2.INTER_CUBIC )
+
+    return downscaled
+
+def salt_and_pepper(digits,num):
+    dnoice = []
+    _,xl,yl = digits.shape
+    for d in digits:
+        xaxis = np.arange(xl)
+        yaxis = np.arange(yl)
+        indices = np.array(np.meshgrid(yaxis,xaxis)).transpose().reshape(-1,2)
+        randints = np.random.permutation(xl * yl)
+        noice_img = d.copy()
+        for i in randints[:num]:
+            [x,y] = indices[i]
+            noice_img[x,y] = 0 if (noice_img[x,y] != 0) else 255
+        dnoice.append(scale_down(noice_img))
+
+    return np.array(dnoice) 
 
 def bin_entropies(preds, labels):
     bits = list(map(stats.entropy, preds))

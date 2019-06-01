@@ -4,8 +4,9 @@ import keras.losses as klosses
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import entropy
+import gc
 
-ensemble_sizes = [5, 20, 50, 100]
+ensemble_sizes = [5, 20, 50]
 
 trials = 10
 
@@ -83,25 +84,25 @@ def calc_vote_entropy(model_list, ensemble_size, digits):
         pred = m.predict(digits)
         votes = ann.classify(pred)
         vote_mat += votes
-    
+
     vote_rate = vote_mat * 1/ensemble_size
     return np.mean(entropy(vote_rate.transpose()))
-    
+
 
 
 def test_digits(model, model_list, ensemble_size ,digits, labels):
     l_c_errors = []
     l_pred_entropy = []
-    l_vote_entropy = []
+    #l_vote_entropy = []
     for d in digits:
         c_error = ann.test_model(model, [d]*ensemble_size, labels, metric = 'c_error')
         entropy = ann.test_model(model, [d]*ensemble_size, labels, metric = 'entropy')
-        vote_entropy = calc_vote_entropy(model_list, ensemble_size, d)
+        #vote_entropy = calc_vote_entropy(model_list, ensemble_size, d)
         l_c_errors.append(c_error)
         l_pred_entropy.append(entropy)
-        l_vote_entropy.append(vote_entropy)
-    
-    return l_c_errors, l_pred_entropy, l_vote_entropy
+        #l_vote_entropy.append(vote_entropy)
+
+    return l_c_errors, l_pred_entropy #, l_vote_entropy
 
 
 def experiment(network_model, reshape_mode = 'mlp'):
@@ -119,10 +120,9 @@ def experiment(network_model, reshape_mode = 'mlp'):
     digits_data = list(map(reshape_fun, [custom_digits_dict[t] for t in digits_taus]))
     digits_data = list(map(utils.normalize_data, digits_data))
     digits_labels = utils.create_one_hot(digits_labels.astype('uint'))
-
-    og_digits = utils.
-
-    for t in range(trials):
+    for tr in range(10,trials+1):
+        gc.collect()
+        print("==== TRIAL %s ====" % tr)
         # Preparing Results
         # Classification Error
         ensemble_cerror = []
@@ -170,10 +170,11 @@ def experiment(network_model, reshape_mode = 'mlp'):
             entropy_ensemble.append(entropy)
             #entropy_vote.append(calc_vote_entropy(model_list,m,xtest))
 
-            d_cerror,d_entropy,d_vote = test_digits(merge_model,model_list,m,digits_data,digits_labels)
+            d_cerror,d_entropy = test_digits(merge_model,model_list,m,digits_data,digits_labels)
 
             digits_cerror.append(d_cerror)
             digits_entropy.append(d_entropy)
+            gc.collect()
 
             #digits_vote.append(d_vote)
             # Adveserial training
@@ -195,8 +196,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
             #t_digits_adv_cerror.append(d_cerror)
             #t_digits_adv_entropy.append(d_entropy)
 
-        filename1 = 'mnist_results_5-20-50-trial%s' % t
-        filename2 = 'digits_results_5-20-50-trial%s' % t
+        filename1 = 'CNNmnist_results_5-20-50-trial%s' % tr
+        filename2 = 'CNNdigits_results_5-20-50-trial%s' % tr
 
         mnist_results = {
             'ensemble_cerror' : ensemble_cerror,
@@ -215,7 +216,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
             #'voting_entropy' : digits_vote
             #'voting_adv_entropy' : digits_adv_vote
         }
-    
+
 
         utils.save_processed_data(mnist_results,filename1)
         utils.save_processed_data(digits_results,filename2)

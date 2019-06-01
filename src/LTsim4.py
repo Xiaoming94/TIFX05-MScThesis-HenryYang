@@ -102,11 +102,11 @@ def thickness_sim(model_list, data, labels ,thicknesses):
 mnist_linethickness = 14.095163376059986
 # 93.62709087870702
 
-epochs = 5
+epochs = 3
 
 ensemblesize = 100
 
-chunksize = 25
+chunksize = 20
 
 nchunks = ensemblesize // chunksize
 
@@ -125,7 +125,7 @@ digits_data = utils.load_processed_data("combined_testing_data")
 taus = list(digits_data.keys())[:-1]
 digits = list(map(reshape_fun, [digits_data[t] for t in taus]))
 digits = list(map(utils.normalize_data, digits))
-labels = utils.create_one_hot(digits_data['labels'].astype('uint'))    
+labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
 
 
 mnist_mpreds = []
@@ -156,7 +156,7 @@ for _ in range(nchunks):
 
     inputs, outputs, train_model, model_list, _ = ann.build_ensemble([network_model1],chunksize,None)
     train_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=['accuracy'])
-    train_model.fit(l_xtrain,l_ytrain, verbose=1, validation_data=(l_xval,l_yval),epochs=epochs)
+    train_model.fit(l_xtrain,l_ytrain, verbose=1,batch_size=100, validation_data=(l_xval,l_yval),epochs=epochs)
     m_mpreds = list(map(lambda m: m.predict(xtest), model_list))
     m_mcerr = list(map(lambda m: ann.test_model(m,xtest,ytest,"c_error"), model_list))
     m_mbits = list(map(lambda m: ann.test_model(m,xtest,ytest,"entropy"), model_list))

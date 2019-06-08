@@ -139,7 +139,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
     trials = 5
 
-    for t in range(2,trials+1):
+    for t in range(1,trials+1):
 
         gc.collect()
 
@@ -181,14 +181,14 @@ def experiment(network_model, reshape_mode = 'mlp'):
         }
 
 
-        filename = "conv_saltpepper_random_trial-%s" % t
+        filename = "saltpepper_random_trial-%s" % t
         utils.save_processed_data(total_results, filename)
 
 
 
 
 utils.setup_gpu_session()
-experiment(network_model2, 'conv')
+experiment(network_model1, 'mlp')
 
 #results_linewidth = results['optimal_lw']
 #results_lecunn = results['lecunn']

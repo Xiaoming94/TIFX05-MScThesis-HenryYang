@@ -181,12 +181,12 @@ def experiment(network_model, reshape_mode = 'mlp'):
         results['c_error'][0] = c_error
         results['entropy'][0] = entropy
 
-        filename = "conv_saltpepper_leftright_trial-%s" % t
+        filename = "saltpepper_leftright_trial-%s" % t
         utils.save_processed_data(results, filename)
 
 
 
 utils.setup_gpu_session()
-experiment(network_model2, 'conv')
+experiment(network_model1, 'mlp')
 
 print("Script Done")

@@ -124,7 +124,7 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
 
     dnum = 800
 
-    for i in range(2,30):
+    for i in range(2,31):
         dchange = salt_and_pepper(digits,i * dnum - 15)
 
         d = utils.normalize_data(reshape_fun(dmore))

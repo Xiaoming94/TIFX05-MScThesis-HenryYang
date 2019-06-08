@@ -3,7 +3,7 @@ import ANN as ann
 import numpy as np
 import cv2
 import gc
-
+from console_progressbar import ProgressBar
 import matplotlib.pyplot as plt
 
 
@@ -104,6 +104,7 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
 
     dnum = 200
 
+    pb = ProgressBar(total=100,prefix='Sim trial progress',length=25, fill='=',zfill='_')
     for i in range(1,101):
         dnoice = salt_and_pepper(digits,i * dnum)
 
@@ -112,6 +113,7 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
         c_error = ann.test_model(model, [d]*ensemble_size, labels, metric = 'c_error')
         steps_results['entropy'][i] = entropy
         steps_results['c_error'][i] = c_error
+        pb.print_progress_bar(i)
 
     return steps_results
 
@@ -135,7 +137,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
     trials = 5
 
-    for t in range(1,trials+1):
+    for t in range(2,trials+1):
 
         gc.collect()
 

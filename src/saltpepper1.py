@@ -117,7 +117,7 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
         'entropy' : {}
     }
 
-    dnum = 50
+    dnum = 80
 
     for i in range(1,101):
         dless, dmore = salt_and_pepper(digits,i * dnum)
@@ -151,6 +151,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     ensemble_size = 20
     epochs = 3
     small_digits = reshape_fun(np.array(list(map(scale_down, digits))))
+    small_digits = utils.normalize_data(small_digits)
     trials = 10
 
     for t in range(1,trials+1):

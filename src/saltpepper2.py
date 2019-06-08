@@ -127,8 +127,10 @@ def experiment(network_model, reshape_mode = 'mlp'):
     xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
     digits_data = utils.load_processed_data('digits_og_and_optimal')
     digits = digits_data['optimal_lw']
+    digits = utils.normalize_data(digits)
     digits_og = digits_data['lecunn_big']
     digits_og_small = reshape_fun(digits_data['lecunn'])
+    digits_og_small = utils.normalize_data(digits_og_small)
     labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
 
     ensemble_size = 20

@@ -81,35 +81,40 @@ def scale_down(img):
     return downscaled
 
 def salt_and_pepper(digits,num):
-    print(digits.shape)
-    dless = []
-    dmore = []
-    for d in digits:
-        nonzeros = np.array(np.where(d != 0)).transpose()
-        zeros = np.array(np.where(d == 0)).transpose()
-        # reducing black pixels
-        if nonzeros.shape[0] < num:
-            dless.append(np.zeros((28,28)))
-        else:
-            img_dl = d.copy()
-            randidx = np.random.permutation(nonzeros.shape[0])
-            for i in randidx[:num]:
-                [x,y] = nonzeros[i]
-                img_dl[x,y] = 0
-            dless.append(scale_down(img_dl))
+    def reduce_black_pixel(digits, num):
+        dless = []
+        for d in digits:
+            nonzeros = np.array(np.where(d != 0)).transpose()
+            # reducing black pixels
+            if nonzeros.shape[0] < num:
+                dless.append(np.zeros((28,28)))
+            else:
+                img_dl = d.copy()
+                randidx = np.random.permutation(nonzeros.shape[0])
+                for i in randidx[:num]:
+                    [x,y] = nonzeros[i]
+                    img_dl[x,y] = 0
+                dless.append(scale_down(img_dl))
+        return dless
 
-        # adding black pixels
-        if zeros.shape[0] < num:
-            dmore.append(np.ones((28,28)))
-        else:
-            img_more = d.copy()
-            randidx = np.random.permutation(zeros.shape[0])
-            for i in randidx[:num]:
-                [x,y] = zeros[i]
-                img_more[x,y] = 255
-            dmore.append(scale_down(img_more))
-
-    return np.array(dless), np.array(dmore)
+    def increase_black_pixels(digits, num):
+        dmore = []
+        for d in digits:
+            if zeros.shape[0] < num:
+                dmore.append(np.ones((28,28)))
+            else:
+                img_more = d.copy()
+                randidx = np.random.permutation(zeros.shape[0])
+                for i in randidx[:num]:
+                    [x,y] = zeros[i]
+                    img_more[x,y] = 255
+                dmore.append(scale_down(img_more))
+        return dmore
+    
+    if num < 0 :
+        return reduce_black_pixel(digits,abs(num))
+    else:
+        return increase_black_pixels(digits,abs(num))
 
 def test_digits(model, digits, labels, ensemble_size, reshape_fun):
     steps_results = {
@@ -117,22 +122,16 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
         'entropy' : {}
     }
 
-    dnum = 80
+    dnum = 800
 
-    for i in range(1,101):
-        dless, dmore = salt_and_pepper(digits,i * dnum)
+    for i in range(2,31):
+        dchange = salt_and_pepper(digits,i * dnum - 15)
 
         d = utils.normalize_data(reshape_fun(dmore))
         entropy = ann.test_model(model, [d]*ensemble_size, labels, metric = 'entropy')
         c_error = ann.test_model(model, [d]*ensemble_size, labels, metric = 'c_error')
         steps_results['entropy'][i] = entropy
         steps_results['c_error'][i] = c_error
-
-        d = utils.normalize_data(reshape_fun(dless))
-        entropy = ann.test_model(model, [d]*ensemble_size, labels, metric = 'entropy')
-        c_error = ann.test_model(model, [d]*ensemble_size, labels, metric = 'c_error')
-        steps_results['entropy'][-1 * i] = entropy
-        steps_results['c_error'][-1 * i] = c_error
 
     return steps_results
 
@@ -187,6 +186,6 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
 
 utils.setup_gpu_session()
-experiment(network_model2, 'conv')
+experiment(network_model1, 'mlp')
 
 print("Script Done")

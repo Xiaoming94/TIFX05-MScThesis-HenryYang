@@ -110,7 +110,7 @@ def salt_and_pepper(digits,num):
                     img_more[x,y] = 255
                 dmore.append(scale_down(img_more))
         return dmore
-    
+
     if num < 0 :
         return reduce_black_pixel(digits,abs(num))
     else:
@@ -180,7 +180,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
         results['c_error'][0] = c_error
         results['entropy'][0] = entropy
 
-        filename = "conv_saltpepper_leftright_trial-%s" % t
+        filename = "saltpepper_norm_trial-%s" % t
         utils.save_processed_data(results, filename)
 
 

@@ -125,7 +125,7 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
     dnum = 800
 
     for i in range(2,31):
-        dchange = salt_and_pepper(digits,i * dnum - 15)
+        dchange = salt_and_pepper(digits,(i - 15) * dnum)
 
         d = utils.normalize_data(reshape_fun(dmore))
         entropy = ann.test_model(model, [d]*ensemble_size, labels, metric = 'entropy')

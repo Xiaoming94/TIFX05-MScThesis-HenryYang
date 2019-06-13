@@ -95,11 +95,12 @@ def salt_and_pepper(digits,num):
                     [x,y] = nonzeros[i]
                     img_dl[x,y] = 0
                 dless.append(scale_down(img_dl))
-        return dless
+        return np.array(dless)
 
     def increase_black_pixels(digits, num):
         dmore = []
         for d in digits:
+            zeros = np.array(np.where(d == 0)).transpose()
             if zeros.shape[0] < num:
                 dmore.append(np.ones((28,28)))
             else:
@@ -109,7 +110,7 @@ def salt_and_pepper(digits,num):
                     [x,y] = zeros[i]
                     img_more[x,y] = 255
                 dmore.append(scale_down(img_more))
-        return dmore
+        return np.array(dmore)
 
     if num < 0 :
         return reduce_black_pixel(digits,abs(num))
@@ -127,7 +128,7 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
     for i in range(2,31):
         dchange = salt_and_pepper(digits,(i - 15) * dnum)
 
-        d = utils.normalize_data(reshape_fun(dmore))
+        d = utils.normalize_data(reshape_fun(dchange))
         entropy = ann.test_model(model, [d]*ensemble_size, labels, metric = 'entropy')
         c_error = ann.test_model(model, [d]*ensemble_size, labels, metric = 'c_error')
         steps_results['entropy'][i] = entropy
@@ -148,10 +149,10 @@ def experiment(network_model, reshape_mode = 'mlp'):
     labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
 
     ensemble_size = 20
-    epochs = 3
+    epochs = 5
     small_digits = reshape_fun(np.array(list(map(scale_down, digits))))
     small_digits = utils.normalize_data(small_digits)
-    trials = 10
+    trials = 5
 
     for t in range(1,trials+1):
         gc.collect()
@@ -174,11 +175,11 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
         results = test_digits(merge_model, digits, labels, ensemble_size, reshape_fun)
 
-        entropy = ann.test_model(merge_model, [small_digits]*ensemble_size, labels, metric = 'entropy')
-        c_error = ann.test_model(merge_model, [small_digits]*ensemble_size, labels, metric = 'c_error')
+        #entropy = ann.test_model(merge_model, [small_digits]*ensemble_size, labels, metric = 'entropy')
+        #c_error = ann.test_model(merge_model, [small_digits]*ensemble_size, labels, metric = 'c_error')
 
-        results['c_error'][0] = c_error
-        results['entropy'][0] = entropy
+        #results['c_error'][0] = c_error
+        #results['entropy'][0] = entropy
 
         filename = "saltpepper_norm_trial-%s" % t
         utils.save_processed_data(results, filename)

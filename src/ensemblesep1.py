@@ -73,20 +73,30 @@ network_model2 = '''
     ]
 }
 '''
+def calc_pred_vars(mempred):
+    M,K = mempred.shape
+    cumsum = 0
+    for k in mempred:
+        cumsum += (np.sum(k*k)/K - (np.sum(k)**2)/K)
+    
+    return cumsum/M
 
-def bin_entropies(preds, labels):
+
+
+def bin_entropies(preds, mempreds ,labels):
     bits = list(map(stats.entropy, preds))
+    s_square = list(map(calc_pred_vars,mempreds))
     classes = ann.classify(preds)
     diff = classes - labels
 
     wrong = []
     correct = []
 
-    for h,d in zip(bits,diff):
+    for h,s2,d in zip(bits,s_square,diff):
         if np.linalg.norm(d) > 0:
-            wrong.append(h)
+            wrong.append([h,s2])
         else:
-            correct.append(h)
+            correct.append([h,s2])
     
     return correct, wrong
 
@@ -113,7 +123,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     d2_labels = utils.create_one_hot(digits_data2['labels'].astype('uint'))
 
     ensemble_size = 20
-    epochs = 3
+    epochs = 1
     trials = 5
 
     mnist_correct = []
@@ -138,22 +148,26 @@ def experiment(network_model, reshape_mode = 'mlp'):
             l_yval.append(t_yval)
 
         inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model], pop_per_type=ensemble_size, merge_type="Average")
+        #print(np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,0,2).shape)
         train_model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['acc'])
         train_model.fit(l_xtrain,l_ytrain,epochs = epochs, validation_data = (l_xval,l_yval))
 
         mnist_preds = merge_model.predict([xtest]*ensemble_size)
-        correct, wrong = bin_entropies(mnist_preds, ytest)
+        mnist_mem_preds = np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,2,0)
+        correct, wrong = bin_entropies(mnist_preds, mnist_mem_preds ,ytest)
         mnist_correct.extend(correct)
         mnist_wrong.extend(wrong)
 
         d2_preds = merge_model.predict([digits_og]*ensemble_size)
-        correct, wrong = bin_entropies(d2_preds, d2_labels)
+        d2_mempreds = np.array(train_model.predict([digits_og]*ensemble_size)).transpose(1,2,0)
+        correct, wrong = bin_entropies(d2_preds, d2_mempreds, d2_labels)
         d2_correct.extend(correct)
         d2_wrong.extend(wrong)
 
         for d in digits:
             digits_preds = merge_model.predict([d]*ensemble_size)
-            correct, wrong = bin_entropies(digits_preds,d_labels)
+            mempreds = np.array(train_model.predict([d]*ensemble_size)).transpose(1,2,0)
+            correct, wrong = bin_entropies(digits_preds,mempreds,d_labels)
             digits_wrong.extend(wrong)
             digits_correct.extend(correct)
 
@@ -168,8 +182,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
     return ensemble
 
-ensemble = experiment(network_model2, 'conv')
-utils.save_processed_data(ensemble , "cnn_entropy5trial-bins")
+ensemble = experiment(network_model1, 'mlp')
+utils.save_processed_data(ensemble , "entropy5sep-bins")
 
 #plt.figure()
 #plt.subplot(221)

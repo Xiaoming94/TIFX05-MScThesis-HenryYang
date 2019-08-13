@@ -123,7 +123,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     d2_labels = utils.create_one_hot(digits_data2['labels'].astype('uint'))
 
     ensemble_size = 20
-    epochs = 1
+    epochs = 3
     trials = 5
 
     mnist_correct = []
@@ -182,8 +182,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
     return ensemble
 
-ensemble = experiment(network_model1, 'mlp')
-utils.save_processed_data(ensemble , "entropy5sep-bins")
+ensemble = experiment(network_model2, 'conv')
+utils.save_processed_data(ensemble , "cnn_entropy5sep-bins")
 
 #plt.figure()
 #plt.subplot(221)

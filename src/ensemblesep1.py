@@ -77,7 +77,7 @@ def calc_pred_vars(mempred):
     M,K = mempred.shape
     cumsum = 0
     for k in mempred:
-        cumsum += (np.sum(k*k)/K - (np.sum(k)**2)/K)
+        cumsum += (np.sum(k*k)/K - ((np.sum(k)/K)**2))
     
     return cumsum/M
 

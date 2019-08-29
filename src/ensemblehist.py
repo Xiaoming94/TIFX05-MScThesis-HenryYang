@@ -33,6 +33,47 @@ network_model1 = '''
 }
 '''
 
+network_model2 = '''
+{
+    "input_shape" : [28,28,1],
+    "layers" : [
+        {
+            "type" : "Conv2D",
+            "units" : 16,
+            "kernel_size" : [3,3],
+            "activation" : "relu"
+        },
+        {
+            "type" : "BatchNormalization",
+            "axis" : -1
+        },
+        {
+            "type" : "Conv2D",
+            "units" : 32,
+            "kernel_size" : [3,3],
+            "activation" : "relu"
+        },
+        {
+            "type" : "BatchNormalization",
+            "axis" : -1
+        },
+        {
+            "type" : "MaxPooling2D",
+            "pool_size" : [2,2],
+            "strides" : [2,2]
+        },
+        {
+            "type" : "Flatten"
+        },
+        {
+            "type" : "Dense",
+            "units" : 10,
+            "activation" : "softmax"
+        }
+    ]
+}
+'''
+
 def bin_entropies(preds, labels):
     bits = list(map(stats.entropy, preds))
     classes = ann.classify(preds)
@@ -71,7 +112,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     d2_labels = utils.create_one_hot(digits_data2['labels'].astype('uint'))
 
     ensemble_size = 20
-    epochs = 5
+    epochs = 3
 
     l_xtrain = []
     l_xval = []
@@ -128,31 +169,34 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
     return individual
 
+utils.setup_gpu_session()
 individual = experiment(network_model1, 'mlp')
+utils.save_processed_data(individual,'individual_entropy_bins')
 
-plt.figure()
-plt.subplot(231)
-plt.hist(individual['mnist_correct'],color = 'blue')
-plt.xlabel('entropy')
-plt.ylabel('n_correct')
-plt.subplot(232)
-plt.hist(individual['lecunn_correct'],color = 'blue')
-plt.xlabel('entropy')
-plt.ylabel('n_correct')
-plt.subplot(233)
-plt.hist(individual['digits_correct'],color = 'blue')
-plt.xlabel('entropy')
-plt.ylabel('n_correct')
-plt.subplot(234)
-plt.hist(individual['mnist_wrong'],color = 'red')
-plt.xlabel('entropy')
-plt.ylabel('n_wrong')
-plt.subplot(235)
-plt.hist(individual['lecunn_wrong'],color = 'red')
-plt.xlabel('entropy')
-plt.ylabel('n_wrong')
-plt.subplot(236)
-plt.hist(individual['digits_wrong'],color = 'red')
-plt.xlabel('entropy')
-plt.ylabel('n_wrong')
-plt.show()
+
+#plt.figure()
+#plt.subplot(231)
+#plt.hist(individual['mnist_correct'],color = 'blue')
+#plt.xlabel('entropy')
+#plt.ylabel('n_correct')
+#plt.subplot(232)
+#plt.hist(individual['lecunn_correct'],color = 'blue')
+#plt.xlabel('entropy')
+#plt.ylabel('n_correct')
+#plt.subplot(233)
+#plt.hist(individual['digits_correct'],color = 'blue')
+#plt.xlabel('entropy')
+#plt.ylabel('n_correct')
+#plt.subplot(234)
+#plt.hist(individual['mnist_wrong'],color = 'red')
+#plt.xlabel('entropy')
+#plt.ylabel('n_wrong')
+#plt.subplot(235)
+#plt.hist(individual['lecunn_wrong'],color = 'red')
+#plt.xlabel('entropy')
+#plt.ylabel('n_wrong')
+#plt.subplot(236)
+#plt.hist(individual['digits_wrong'],color = 'red')
+#plt.xlabel('entropy')
+#plt.ylabel('n_wrong')
+#plt.show()

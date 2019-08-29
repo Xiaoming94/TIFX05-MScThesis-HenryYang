@@ -131,7 +131,7 @@ def apply_salt_pepper(digits):
     steps = [25,27,30]
     sp_digits = []
     for s in steps:
-       sp_digit = salt_and_pepper(digits,s-15)
+       sp_digit = salt_and_pepper(digits,dnum*(s-15))
        sp_digits.append(sp_digit)
 
     return sp_digits

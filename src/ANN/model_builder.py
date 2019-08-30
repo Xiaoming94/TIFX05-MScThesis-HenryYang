@@ -55,7 +55,7 @@ def build_layer(layer_conf):
     neuron_units = layer_conf["units"] if "units" in layer_conf else None
     activation = layer_conf["activation"] if "activation" in layer_conf else None
     if ltype == "Dense":
-        return nn_layers.Dense(neuron_units,activation=activation,activity_regularizer=reg.l2(0.01))
+        return nn_layers.Dense(neuron_units,activation=activation,activity_regularizer=reg.l2(0.001))
     
     if ltype == "Conv2D":
         return nn_layers.Conv2D(neuron_units,tuple(layer_conf["kernel_size"]),activation=activation)

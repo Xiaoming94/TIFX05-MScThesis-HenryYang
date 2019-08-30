@@ -78,44 +78,35 @@ def unpad_img(img):
     return img
 
 def change_linewidth(img, radius):
-    global lwroutines
-    h,w = img.shape
-    img_array = img.astype('int').flatten().tolist()
-    arr_type = ctypes.c_int * (h * w)
-    new_img_arr = lwroutines.change_linewidth(arr_type(*img_array),ctypes.c_int(w),ctypes.c_int(h),ctypes.c_int(radius))
-    l_new_img = []
-    for i in range(h*w):
-        l_new_img.append(new_img_arr[i])
-    
-    new_img = np.array(l_new_img).reshape(h,w).astype('float')
-    #def find_new_pixval(img, newimg, x, y, radius,search_coords):
-    #    (height,width) = img.shape
-    #    pixels = set()
-    #    for rx,ry in search_coords:
-    #        # Bounding the coordinates
-    #        drx = max(x + rx, 0)
-    #        drx = min(drx, width-1)
-    #        dry = max(y + ry, 0)
-    #        dry = min(dry, height-1)
-#
-    #        pixels.add(img[dry,drx])
-    #    
-    #    newimg[y,x] = max(pixels) if radius > 0 else min(pixels)
-#
-    #(height,width) = img.shape
-    #new_img = np.zeros([height,width])
-    #a_radius = abs(radius)
-    #l_rx = list(range(-1 * a_radius, a_radius + 1))
-    #l_ry = list(range(-1 * a_radius, a_radius + 1))
-    #search_coords = [(rx,ry) for rx in l_rx for ry in l_ry if (abs(rx) + abs(ry) <= a_radius)]
-#
-    #threads = []
-    #for i in range(height):
-    #    for j in range(width):
-    #        #t = threading.Thread(target = find_new_pixval, args = (img,new_img,j,i,radius,search_coords))
-    #        #threads.append(t)
-    #        #t.start()
-    #        find_new_pixval(img,new_img,j,i, radius, search_coords)
+
+    def find_new_pixval(img, newimg, x, y, radius,search_coords):
+        (height,width) = img.shape
+        pixels = set()
+        for rx,ry in search_coords:
+            # Bounding the coordinates
+            drx = max(x + rx, 0)
+            drx = min(drx, width-1)
+            dry = max(y + ry, 0)
+            dry = min(dry, height-1)
+
+            pixels.add(img[dry,drx])
+        
+        newimg[y,x] = max(pixels) if radius > 0 else min(pixels)
+
+    (height,width) = img.shape
+    new_img = np.zeros([height,width])
+    a_radius = abs(radius)
+    l_rx = list(range(-1 * a_radius, a_radius + 1))
+    l_ry = list(range(-1 * a_radius, a_radius + 1))
+    search_coords = [(rx,ry) for rx in l_rx for ry in l_ry if (abs(rx) + abs(ry) <= a_radius)]
+
+    threads = []
+    for i in range(height):
+        for j in range(width):
+            #t = threading.Thread(target = find_new_pixval, args = (img,new_img,j,i,radius,search_coords))
+            #threads.append(t)
+            #t.start()
+            find_new_pixval(img,new_img,j,i, radius, search_coords)
     #
     ##for t in threads:
     ##    t.join()

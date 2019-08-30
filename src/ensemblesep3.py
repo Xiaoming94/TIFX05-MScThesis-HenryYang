@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 import utils.digitutils as dutils
 import cv2
+import keras.callbacks as clb
 
 network_model1 = '''
 {
@@ -141,7 +142,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     letters = list(test_data.keys())
 
     ensemble_size = 20
-    epochs = 5
+    epochs = 20
     trials = 5
 
     results = {
@@ -169,11 +170,11 @@ def experiment(network_model, reshape_mode = 'mlp'):
             l_xval.append(t_xval)
             l_ytrain.append(t_ytrain)
             l_yval.append(t_yval)
-
+        es = clb.EarlyStopping(monitor='val_loss')
         inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model], pop_per_type=ensemble_size, merge_type="Average")
         #print(np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,0,2).shape)
         train_model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['acc'])
-        train_model.fit(l_xtrain,l_ytrain,epochs = epochs, validation_data = (l_xval,l_yval))
+        train_model.fit(l_xtrain,l_ytrain,epochs = epochs, validation_data = (l_xval,l_yval),callbacks=[es])
 
         for letter in letters:
             inputs = test_data[letter]
@@ -185,6 +186,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
             results[letter].extend(list(zip(bits,s_q)))
 
     return results
+utils.setup_gpu_session()
 
 ensemble = experiment(network_model1, 'mlp')
 utils.save_processed_data(ensemble , "distribution_not_mnist")

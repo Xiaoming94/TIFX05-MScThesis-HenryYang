@@ -16,9 +16,9 @@ from multiprocessing import Pool
 import threading
 import ctypes
 
-lwroutines = ctypes.CDLL("cout/liblw.so")
-lwroutines.change_linewidth.argtypes = (ctypes.POINTER(ctypes.c_int),ctypes.c_int,ctypes.c_int,ctypes.c_int)
-lwroutines.change_linewidth.restype = ctypes.POINTER(ctypes.c_int)
+#lwroutines = ctypes.CDLL("cout/liblw.so")
+#lwroutines.change_linewidth.argtypes = (ctypes.POINTER(ctypes.c_int),ctypes.c_int,ctypes.c_int,ctypes.c_int)
+#lwroutines.change_linewidth.restype = ctypes.POINTER(ctypes.c_int)
 
 def resize_image(img, side):
     """

@@ -2,7 +2,7 @@ import utils
 import ANN as ann
 import os
 import numpy as np
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import scipy.stats as stats
 import utils.digitutils as dutils
 import cv2
@@ -77,7 +77,7 @@ network_model2 = '''
 }
 '''
 def create_not_mnist():
-    
+
 
 
     def load_letter(letter_path):
@@ -122,9 +122,9 @@ def calc_pred_vars(mempred):
     M,K = mempred.shape
     cumsum = 0
     for k in mempred:
-        
+
         cumsum += (np.sum(k*k)/K - ((np.sum(k)/K)**2))
-    
+
     return cumsum/M
 
 
@@ -142,7 +142,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     letters = list(test_data.keys())
 
     ensemble_size = 20
-    epochs = 20
+    epochs = 50
     trials = 5
 
     results = {

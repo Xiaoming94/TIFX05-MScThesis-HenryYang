@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import gc
 
+from keras import callbacks as clb
 import matplotlib.pyplot as plt
 
 
@@ -125,7 +126,7 @@ def test_digits(model, digits, labels, ensemble_size, reshape_fun):
 
     dnum = 800
 
-    for i in range(2,31):
+    for i in range(2,51):
         dchange = salt_and_pepper(digits,(i - 15) * dnum)
 
         d = utils.normalize_data(reshape_fun(dchange))
@@ -149,7 +150,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
 
     ensemble_size = 20
-    epochs = 5
+    epochs = 50
     small_digits = reshape_fun(np.array(list(map(scale_down, digits))))
     small_digits = utils.normalize_data(small_digits)
     trials = 5
@@ -169,8 +170,10 @@ def experiment(network_model, reshape_mode = 'mlp'):
             l_yval.append(t_yval)
 
         inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model], pop_per_type=ensemble_size, merge_type="Average")
+        es = clb.EarlyStopping(monitor='val_loss',patience=2,restore_best_weights=True)
+        
         train_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics = ['acc'])
-        train_model.fit(x=l_xtrain,y=l_ytrain, verbose=1,batch_size=100, epochs = epochs,validation_data=(l_xval,l_yval))
+        train_model.fit(x=l_xtrain,y=l_ytrain, verbose=1,batch_size=100, epochs = epochs,validation_data=(l_xval,l_yval),callbacks=[es])
         merge_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=['acc'])
 
         results = test_digits(merge_model, digits, labels, ensemble_size, reshape_fun)

@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import entropy
 import gc
+from keras import callbacks as clb
 
-ensemble_sizes = [5, 20, 50]
+ensemble_sizes = [20]
 
-trials = 10
+trials = 5
 
 network_model2 = '''
 {
@@ -114,13 +115,13 @@ def experiment(network_model, reshape_mode = 'mlp'):
     reshape_fun = reshape_funs[reshape_mode]
     xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
-    custom_digits_dict = utils.load_processed_data("combined_testing_data")
+    custom_digits_dict = utils.load_processed_data("combined_testing_data_more")
     digits_labels = custom_digits_dict['labels']
-    digits_taus = list(custom_digits_dict.keys())[:-1]
+    digits_taus = [t for t in custom_digits_dict.keys() if t != "labels"]
     digits_data = list(map(reshape_fun, [custom_digits_dict[t] for t in digits_taus]))
     digits_data = list(map(utils.normalize_data, digits_data))
     digits_labels = utils.create_one_hot(digits_labels.astype('uint'))
-    for tr in range(10,trials+1):
+    for tr in range(1,trials+1):
         gc.collect()
         print("==== TRIAL %s ====" % tr)
         # Preparing Results
@@ -142,7 +143,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
         #digits_vote = []
         #digits_adv_entropy = []
 
-        epochs = 3
+        epochs = 50
 
         for m in ensemble_sizes:
             print('Working now with ensemble of size m = %s' % m)
@@ -159,9 +160,10 @@ def experiment(network_model, reshape_mode = 'mlp'):
                 l_yval.append(t_yval)
             # Without adveserial training
 
+            es = clb.EarlyStopping(monitor='val_loss',patience=2,restore_best_weights = True)
             inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model], pop_per_type=m, merge_type="Average")
             train_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics = ['acc'])
-            train_model.fit(x=l_xtrain,y=l_ytrain, verbose=1,batch_size=100, epochs = epochs,validation_data=(l_xval,l_yval))
+            train_model.fit(x=l_xtrain,y=l_ytrain, verbose=1, epochs = epochs,validation_data=(l_xval,l_yval),callbacks=[es])
             merge_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=['acc'])
             c_error = ann.test_model(merge_model, [xtest]*m, ytest, metric = 'accuracy' )
             entropy = ann.test_model(merge_model, [xtest]*m, ytest, metric = 'entropy' )
@@ -196,8 +198,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
             #t_digits_adv_cerror.append(d_cerror)
             #t_digits_adv_entropy.append(d_entropy)
 
-        filename1 = 'CNNmnist_results_5-20-50-trial%s' % tr
-        filename2 = 'CNNdigits_results_5-20-50-trial%s' % tr
+        filename1 = 'mnist_results_20-trial%s' % tr
+        filename2 = 'digits_results_20-trial%s' % tr
 
         mnist_results = {
             'ensemble_cerror' : ensemble_cerror,
@@ -225,4 +227,4 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
 utils.setup_gpu_session()
 
-taus, mnist_results ,digits_results = experiment(network_model2, 'conv')
+taus, mnist_results ,digits_results = experiment(network_model1, 'conv')

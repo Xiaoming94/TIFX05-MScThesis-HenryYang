@@ -178,6 +178,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
         for letter in letters:
             inputs = test_data[letter]
+            inputs = utils.normalize_data(inputs)
             inputs = reshape_fun(inputs)
             preds = merge_model.predict([inputs]*ensemble_size)
             mem_preds = np.array(train_model.predict([inputs]*ensemble_size)).transpose(1,2,0)

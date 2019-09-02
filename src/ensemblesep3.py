@@ -157,7 +157,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     reshape_fun = reshape_funs[reshape_mode]
     xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
-    test_data = utils.load_processed_data('notmnist1000')
+    test_data = utils.load_processed_data('notMNIST1000')
     letters = list(test_data.keys())
 
     ensemble_size = 20

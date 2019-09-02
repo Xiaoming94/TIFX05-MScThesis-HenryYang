@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 
 import cv2
+import keras.callbacks as clb
+
 
 network_model1 = '''
 {
@@ -258,6 +260,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
             l_ytrain.append(t_ytrain)
             l_yval.append(t_yval)
 
+        es = clb.EarlyStopping(monitor='val_loss', patience = 2, restore_best_weights = True)
         inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model], pop_per_type=ensemble_size, merge_type="Average")
         #print(np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,0,2).shape)
         train_model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['acc'])

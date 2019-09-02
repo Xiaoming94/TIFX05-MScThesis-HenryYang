@@ -13,23 +13,43 @@ network_model1 = '''
         {
             "type" : "Dense",
             "units" : 200,
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            }
         },
         {
             "type" : "Dense",
             "units" : 200,
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            }
         },
         {
             "type" : "Dense",
             "units" : 200,
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            }
         },
         {
             "type" : "Dense",
             "units" : 10,
-            "activation" : "softmax"
-        }
+            "activation" : "softmax",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.001
+            },
+            "activity_regularizer" : {
+                "type" : "l1",
+                "lambda" : 0.0001
+            }
+        }     
     ]
 }
 '''
@@ -40,9 +60,13 @@ network_model2 = '''
     "layers" : [
         {
             "type" : "Conv2D",
-            "units" : 16,
+            "units" : 48,
             "kernel_size" : [3,3],
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            }
         },
         {
             "type" : "BatchNormalization",
@@ -50,9 +74,27 @@ network_model2 = '''
         },
         {
             "type" : "Conv2D",
-            "units" : 32,
+            "units" : 96,
             "kernel_size" : [3,3],
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            },
+        },
+        {
+            "type" : "BatchNormalization",
+            "axis" : -1
+        },
+        {
+            "type" : "Conv2D",
+            "units" : 64,
+            "kernel_size" : [3,3],
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            },
         },
         {
             "type" : "BatchNormalization",
@@ -68,8 +110,25 @@ network_model2 = '''
         },
         {
             "type" : "Dense",
+            "units" : 100,
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.001
+            }
+        },
+        {
+            "type" : "Dense",
             "units" : 10,
             "activation" : "softmax"
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            },
+            "activity_regularizer" : {
+                "type" : "l1",
+                "lambda" : 0.0001
+            }
         }
     ]
 }
@@ -124,7 +183,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
     d2_labels = utils.create_one_hot(digits_data2['labels'].astype('uint'))
 
     ensemble_size = 20
-    epochs = 3
+    epochs = 50
     trials = 5
 
     mnist_correct = []
@@ -148,7 +207,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
             l_ytrain.append(t_ytrain)
             l_yval.append(t_yval)
 
-        es = clb.EarlyStopping(monitor='val_acc',patience=2,restore_best_weights = True)
+        es = clb.EarlyStopping(monitor='val_loss',patience=2,restore_best_weights = True)
 
         inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model], pop_per_type=ensemble_size, merge_type="Average")
         #print(np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,0,2).shape)
@@ -185,7 +244,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
     return ensemble
 
-ensemble = experiment(network_model2, 'conv')
+ensemble = experiment(network_model1, 'mlp')
 utils.save_processed_data(ensemble , "cnn_entropy5sep-bins")
 
 #plt.figure()

@@ -17,7 +17,7 @@ network_model1 = '''
             "type" : "Dense",
             "units" : 200,
             "activation" : "relu",
-            "kernel_regularizer" : {
+            "activity_regularizer" : {
                 "type" : "l2",
                 "lambda" : 0.0001
             }
@@ -26,7 +26,7 @@ network_model1 = '''
             "type" : "Dense",
             "units" : 200,
             "activation" : "relu",
-            "kernel_regularizer" : {
+            "activity_regularizer" : {
                 "type" : "l2",
                 "lambda" : 0.0001
             }
@@ -35,7 +35,7 @@ network_model1 = '''
             "type" : "Dense",
             "units" : 200,
             "activation" : "relu",
-            "kernel_regularizer" : {
+            "activity_regularizer" : {
                 "type" : "l2",
                 "lambda" : 0.0001
             }
@@ -44,12 +44,8 @@ network_model1 = '''
             "type" : "Dense",
             "units" : 10,
             "activation" : "softmax",
-            "kernel_regularizer" : {
-                "type" : "l2",
-                "lambda" : 0.001
-            },
             "activity_regularizer" : {
-                "type" : "l1",
+                "type" : "l2",
                 "lambda" : 0.0001
             }
         }     
@@ -264,7 +260,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
         inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model], pop_per_type=ensemble_size, merge_type="Average")
         #print(np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,0,2).shape)
         train_model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['acc'])
-        train_model.fit(l_xtrain,l_ytrain,epochs = epochs, validation_data = (l_xval,l_yval))
+        train_model.fit(l_xtrain,l_ytrain,epochs = epochs, validation_data = (l_xval,l_yval),callbacks=[es])
 
         #mnist_preds = merge_model.predict([xtest]*ensemble_size)
         #mnist_mem_preds = np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,2,0)

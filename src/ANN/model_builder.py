@@ -50,15 +50,28 @@ def build_ensemble(net_configs, pop_per_type = 5, merge_type = None):
     model_list = [Model(inputs=il,outputs=ol) for il,ol in zip(inputs,outputs)]
     return inputs, outputs, train_model, model_list, merge_model
 
+def build_regularizer(config):
+    if config['type'] == 'l2':
+        return reg.l2(config['lambda'])
+    elif config['type'] == 'l1':
+        return reg.l1(config['lambda'])
+
+    else: 
+        return None
+
 def build_layer(layer_conf):
     ltype = layer_conf["type"]
     neuron_units = layer_conf["units"] if "units" in layer_conf else None
     activation = layer_conf["activation"] if "activation" in layer_conf else None
+    ar = build_regularizer(layer_conf['activity_regularizer']) if 'activity_regularizer' in layer_conf else None
+    kr = build_regularizer(layer_conf['kernel_regularizer']) if 'kernel_regularizer' in layer_conf else None
+    br = build_regularizer(layer_conf['bias_regularizer']) if 'bias_regularizer' in layer_conf else None
+
     if ltype == "Dense":
-        return nn_layers.Dense(neuron_units,activation=activation,activity_regularizer=reg.l2(0.001))
+        return nn_layers.Dense(neuron_units,activation=activation, activity_regularizer = ar,bias_regularizer= br, kernel_regularizer = kr)
     
     if ltype == "Conv2D":
-        return nn_layers.Conv2D(neuron_units,tuple(layer_conf["kernel_size"]),activation=activation)
+        return nn_layers.Conv2D(neuron_units,tuple(layer_conf["kernel_size"]),activation=activation, activity_regularizer = ar,bias_regularizer= br, kernel_regularizer = kr)
     
     if ltype == "BatchNormalization":
         return nn_layers.BatchNormalization(axis=layer_conf["axis"])

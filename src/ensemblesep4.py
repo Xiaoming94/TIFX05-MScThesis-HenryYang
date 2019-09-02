@@ -14,23 +14,43 @@ network_model1 = '''
         {
             "type" : "Dense",
             "units" : 200,
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            }
         },
         {
             "type" : "Dense",
             "units" : 200,
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            }
         },
         {
             "type" : "Dense",
             "units" : 200,
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            }
         },
         {
             "type" : "Dense",
             "units" : 10,
-            "activation" : "softmax"
-        }
+            "activation" : "softmax",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.001
+            },
+            "activity_regularizer" : {
+                "type" : "l1",
+                "lambda" : 0.0001
+            }
+        }     
     ]
 }
 '''
@@ -41,9 +61,13 @@ network_model2 = '''
     "layers" : [
         {
             "type" : "Conv2D",
-            "units" : 16,
+            "units" : 48,
             "kernel_size" : [3,3],
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            }
         },
         {
             "type" : "BatchNormalization",
@@ -51,9 +75,27 @@ network_model2 = '''
         },
         {
             "type" : "Conv2D",
-            "units" : 32,
+            "units" : 96,
             "kernel_size" : [3,3],
-            "activation" : "relu"
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            },
+        },
+        {
+            "type" : "BatchNormalization",
+            "axis" : -1
+        },
+        {
+            "type" : "Conv2D",
+            "units" : 64,
+            "kernel_size" : [3,3],
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            },
         },
         {
             "type" : "BatchNormalization",
@@ -69,8 +111,25 @@ network_model2 = '''
         },
         {
             "type" : "Dense",
+            "units" : 100,
+            "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.001
+            }
+        },
+        {
+            "type" : "Dense",
             "units" : 10,
             "activation" : "softmax"
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.0001
+            },
+            "activity_regularizer" : {
+                "type" : "l1",
+                "lambda" : 0.0001
+            }
         }
     ]
 }

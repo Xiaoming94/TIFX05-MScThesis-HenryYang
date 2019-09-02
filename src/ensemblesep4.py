@@ -231,8 +231,8 @@ def experiment(network_model, reshape_mode = 'mlp'):
     d_labels = utils.create_one_hot(digits_data['labels'].astype('uint'))
     d2_labels = utils.create_one_hot(digits_data2['labels'].astype('uint'))
 
-    ensemble_size = 10
-    epochs = 5
+    ensemble_size = 20
+    epochs = 50
     trials = 5
 
     mnist_correct = []

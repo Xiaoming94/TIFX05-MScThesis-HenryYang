@@ -158,7 +158,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
     ensemble_size = 20
     epochs = 50
-    trials = 1
+    trials = 5
 
     results = {
         'A': [],

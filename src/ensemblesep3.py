@@ -7,6 +7,7 @@ import scipy.stats as stats
 import utils.digitutils as dutils
 import cv2
 import keras.callbacks as clb
+import keras.optimizers as opt
 
 network_model1 = '''
 {
@@ -16,6 +17,10 @@ network_model1 = '''
             "type" : "Dense",
             "units" : 200,
             "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.001
+            },
             "activity_regularizer" : {
                 "type" : "l2",
                 "lambda" : 0.0001
@@ -25,6 +30,10 @@ network_model1 = '''
             "type" : "Dense",
             "units" : 200,
             "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.001
+            },
             "activity_regularizer" : {
                 "type" : "l2",
                 "lambda" : 0.0001
@@ -34,6 +43,10 @@ network_model1 = '''
             "type" : "Dense",
             "units" : 200,
             "activation" : "relu",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.001
+            },
             "activity_regularizer" : {
                 "type" : "l2",
                 "lambda" : 0.0001
@@ -43,11 +56,15 @@ network_model1 = '''
             "type" : "Dense",
             "units" : 10,
             "activation" : "softmax",
+            "kernel_regularizer" : {
+                "type" : "l2",
+                "lambda" : 0.001
+            },
             "activity_regularizer" : {
                 "type" : "l2",
                 "lambda" : 0.0001
-            }
-        }     
+            } 
+        }    
     ]
 }
 '''
@@ -158,7 +175,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
     ensemble_size = 20
     epochs = 50
-    trials = 5
+    trials = 10
 
     results = {
         'A': [],

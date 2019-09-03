@@ -12,11 +12,7 @@ network_model1 = '''
         {
             "type" : "Dense",
             "units" : 200,
-            "activation" : "relu",
-            "kernel_regularizer" : {
-                "type" : "l2",
-                "lambda" : 0.0001
-            }
+            "activation" : "relu"
         },
         {
             "type" : "BatchNormalization",
@@ -25,11 +21,7 @@ network_model1 = '''
         {
             "type" : "Dense",
             "units" : 200,
-            "activation" : "relu",
-            "kernel_regularizer" : {
-                "type" : "l2",
-                "lambda" : 0.0001
-            }
+            "activation" : "relu"
         },
         {
             "type" : "BatchNormalization",
@@ -38,11 +30,7 @@ network_model1 = '''
         {
             "type" : "Dense",
             "units" : 200,
-            "activation" : "relu",
-            "kernel_regularizer" : {
-                "type" : "l2",
-                "lambda" : 0.0001
-            }
+            "activation" : "relu"
         },
         {
             "type" : "BatchNormalization",

@@ -73,11 +73,12 @@ accuracies = []
 utils.setup_gpu_session()
 
 for t in range(trials):
-
+    print("==== On Trial %s ====" % (t))
     t_accuracies = []
 
     for e in range(25):
         ensemble_size = e + 1
+        print("Ensemble Size %s" % ensemble_size)
         l_xtrain = []
         l_xval = []
         l_ytrain = []

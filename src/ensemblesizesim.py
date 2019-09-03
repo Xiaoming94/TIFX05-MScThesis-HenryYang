@@ -75,7 +75,9 @@ utils.setup_gpu_session()
 for t in range(trials):
 
     t_accuracies = []
+
     for e in range(25):
+        ensemble_size = e + 1
         l_xtrain = []
         l_xval = []
         l_ytrain = []
@@ -88,7 +90,7 @@ for t in range(trials):
             l_yval.append(t_yval)
 
         es = clb.EarlyStopping(monitor='val_loss',patience=2,restore_best_weights = True)
-        ensemble_size = e + 1
+        
         inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model1], pop_per_type=ensemble_size, merge_type="Average")
         #print(np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,0,2).shape)
         train_model.compile(optimizer = opt.Adam(0.1), loss = 'categorical_crossentropy', metrics = ['acc'])

@@ -4,6 +4,9 @@ import numpy as np
 import keras.callbacks as clb
 import keras.optimizers as opt
 import matplotlib.pyplot as plt
+import keras.initializers as inits
+from keras.models import Sequential, Model
+import keras.layers as layers
 
 network_model1 = '''
 {
@@ -47,49 +50,51 @@ network_model1 = '''
 
 trials = 10
 epochs = 50
+ensemble_size_top = 30
 
-reshape_funs = {
-    "mlp" : lambda d : d.reshape(-1,784),
-    "conv" : lambda d : d.reshape(-1,28,28,1)
-}
+reshape_fun = lambda d : d.reshape(-1,784)
 
-xtrain,ytrain,xtest,ytest = utils.load_mnist()
-reshape_fun = reshape_funs["mlp"]
-xtrain,xtest = reshape_fun(xtrain),reshape_fun(xtest)
-
-accuracies = []
-utils.setup_gpu_session()
+xtrain, ytrain, xtest, ytest = utils.load_mnist()
+xtrain, xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
 for t in range(trials):
-    print("==== On Trial %s ====" % (t))
+
     t_accuracies = []
-
-    for e in range(25):
-        ensemble_size = e + 1
-        print("Ensemble Size %s" % ensemble_size)
-        l_xtrain = []
-        l_xval = []
-        l_ytrain = []
-        l_yval = []
-        for _ in range(ensemble_size):
-            t_xtrain,t_ytrain,t_xval,t_yval = utils.create_validation(xtrain,ytrain,(1/6))
-            l_xtrain.append(t_xtrain)
-            l_xval.append(t_xval)
-            l_ytrain.append(t_ytrain)
-            l_yval.append(t_yval)
-
-        es = clb.EarlyStopping(monitor='val_loss',patience=2,restore_best_weights = True)
+    members = []
+    for i in range(int((ensemble_size_top * (ensemble_size_top + 1))/2)):
+        model = Sequential()
+        model.add(layers.Dense(200, input_dim = 784, kernel_initializer = inits.RandomUniform(maxval=(0.5),minval=(-0.5))))
+        model.add(layers.Activation('relu'))
+        model.add(layers.BatchNormalization())
+        model.add(layers.Dense(200, kernel_initializer = inits.RandomUniform(maxval=(0.5),minval=(-0.5))))
+        model.add(layers.Activation('relu'))
+        model.add(layers.BatchNormalization())
+        model.add(layers.Dense(200, kernel_initializer = inits.RandomUniform(maxval=(0.5),minval=(-0.5))))
+        model.add(layers.Activation('relu'))
+        model.add(layers.BatchNormalization())
+        model.add(layers.Dense(10, kernel_initializer = inits.RandomUniform(maxval=(0.5),minval=(-0.5))))
+        model.add(layers.Activation('softmax'))
         
-        inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model1], pop_per_type=ensemble_size, merge_type="Average")
-        #print(np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,0,2).shape)
-        train_model.compile(optimizer = opt.Adam(0.1), loss = 'categorical_crossentropy', metrics = ['acc'])
-        train_model.fit(l_xtrain,l_ytrain,epochs = epochs, batch_size=100 ,validation_data = (l_xval,l_yval), callbacks=[es])
+        es = clb.EarlyStopping(monitor='val_loss', patience = 2, restore_best_weights = True)
+        model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics=['accuracy'])
+        model.fit(xtrain,ytrain,epochs=epochs,callbacks=[es],validation_split = (1/6))
+        members.append(model)
 
-        merge_model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=['acc'])
-        c_error = ann.test_model(merge_model, [xtest]*ensemble_size, ytest, metric = 'accuracy' )
-        t_accuracies.append(c_error)
+    i = 0
+    for ensemble_size in range(2,ensemble_size_top+1):
+        inputs = []
+        outputs = []
+        members_to_use = members[i:i+ensemble_size]
+        for m in members_to_use:
+            inputs.extend(m.inputs)
+            outputs.extend(m.outputs)
+        
+        print((outputs))
+        ensemble = Model(inputs = inputs, outputs = layers.Average()(outputs))
+        ensemble.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['acc'])
+        accuracy = ann.test_model(ensemble, [xtest]*ensemble_size,ytest, 'accuracy')
+        i += ensemble_size
+        t_accuracies.append(accuracy)
     
-    accuracies.append(t_accuracies)
-
-accuracies = np.array(accuracies)
-utils.save_processed_data(accuracies,"results_ensizesim")
+    t_accuracies = np.array(t_accuracies)
+    utils.save_processed_data(t_accuracies,'ensemble_sizesim-trial-%s' % t)

@@ -59,6 +59,7 @@ xtrain, xtest = reshape_fun(xtrain),reshape_fun(xtest)
 
 for t in range(trials):
 
+    print("==== on trial %s ====" % (t+1))
     t_accuracies = []
     members = []
     for i in range(int((ensemble_size_top * (ensemble_size_top + 1))/2)):
@@ -77,7 +78,7 @@ for t in range(trials):
         
         es = clb.EarlyStopping(monitor='val_loss', patience = 2, restore_best_weights = True)
         model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics=['accuracy'])
-        model.fit(xtrain,ytrain,epochs=epochs,callbacks=[es],validation_split = (1/6))
+        model.fit(xtrain,ytrain,epochs=epochs,batch_size=100,callbacks=[es],validation_split = (1/6))
         members.append(model)
 
     i = 0
@@ -97,4 +98,4 @@ for t in range(trials):
         t_accuracies.append(accuracy)
     
     t_accuracies = np.array(t_accuracies)
-    utils.save_processed_data(t_accuracies,'ensemble_sizesim-trial-%s' % t)
+    utils.save_processed_data(t_accuracies,'ensemble_sizesim-trial-%s' % (t+1))

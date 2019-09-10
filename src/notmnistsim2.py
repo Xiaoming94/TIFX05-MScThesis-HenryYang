@@ -11,8 +11,7 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 import scipy.io as sio
 
-ensemble_size = 5
-trials = 1
+trials = 10
 epochs = 50
 
 reshape_fun = lambda d : d.reshape(-1,784)

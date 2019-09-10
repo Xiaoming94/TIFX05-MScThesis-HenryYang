@@ -76,7 +76,7 @@ for t in range(trials):
         model.add(layers.Dense(10, kernel_initializer = inits.RandomUniform(maxval=(0.5),minval=(-0.5))))
         model.add(layers.Activation('softmax'))
         
-        es = clb.EarlyStopping(monitor='val_loss', patience = 2, restore_best_weights = True)
+        es = clb.EarlyStopping(monitor='val_loss', patience = 10, restore_best_weights = True)
         model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics=['accuracy'])
         model.fit(xtrain,ytrain,epochs=epochs,batch_size=100,callbacks=[es],validation_split = (1/6))
         members.append(model)

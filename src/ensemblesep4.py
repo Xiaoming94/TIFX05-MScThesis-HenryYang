@@ -7,7 +7,10 @@ import scipy.stats as stats
 
 import cv2
 import keras.callbacks as clb
-
+from keras.models import Sequential, Model
+import keras.layers as layers
+import keras.initializers as inits
+import keras.optimizers as opt
 
 network_model1 = '''
 {
@@ -260,23 +263,33 @@ def experiment(network_model, reshape_mode = 'mlp'):
 
 
     for t in range(trials):
+        inputs = []
+        outputs = []
+        model_list = []
 
-        l_xtrain = []
-        l_xval = []
-        l_ytrain = []
-        l_yval = []
-        for _ in range(ensemble_size):
-            t_xtrain,t_ytrain,t_xval,t_yval = utils.create_validation(xtrain,ytrain,(1/6))
-            l_xtrain.append(t_xtrain)
-            l_xval.append(t_xval)
-            l_ytrain.append(t_ytrain)
-            l_yval.append(t_yval)
+        for e in range(ensemble_size):
+            model = Sequential()
+            model.add(layers.Dense(200,input_dim=784, kernel_initializer = inits.RandomUniform(maxval=0.5,minval=-0.5)))
+            model.add(layers.Activation("relu"))
+            model.add(layers.BatchNormalization())
+            model.add(layers.Dense(200, kernel_initializer = inits.RandomUniform(maxval=0.5,minval=-0.5)))
+            model.add(layers.Activation("relu"))
+            model.add(layers.BatchNormalization())
+            model.add(layers.Dense(200, kernel_initializer = inits.RandomUniform(maxval=0.5,minval=-0.5)))
+            model.add(layers.Activation("relu"))
+            model.add(layers.BatchNormalization())
+            model.add(layers.Dense(10, kernel_initializer = inits.RandomUniform(maxval=0.5,minval=-0.5)))
+            model.add(layers.Activation("softmax"))
 
-        es = clb.EarlyStopping(monitor='val_loss', patience = 2, restore_best_weights = True)
-        inputs, outputs, train_model, model_list, merge_model = ann.build_ensemble([network_model], pop_per_type=ensemble_size, merge_type="Average")
-        #print(np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,0,2).shape)
-        train_model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['acc'])
-        train_model.fit(l_xtrain,l_ytrain,epochs = epochs, batch_size = 100 ,validation_data = (l_xval,l_yval),callbacks=[es])
+            es = clb.EarlyStopping(monitor='val_loss',patience=5,restore_best_weights=True)
+            model.compile(optimizer=opt.Adam(),loss="categorical_crossentropy",metrics=['acc'])
+            model.fit(xtrain,ytrain,epochs=epochs,batch_size=100,validation_split=(1/6),callbacks=[es])
+            model_list.append(model)
+
+            inputs.extend(model.inputs)
+            outputs.extend(model.outputs)
+
+        merge_model = Model(inputs = inputs, outputs = layers.Average()(outputs))
 
         #mnist_preds = merge_model.predict([xtest]*ensemble_size)
         #mnist_mem_preds = np.array(train_model.predict([xtest]*ensemble_size)).transpose(1,2,0)
@@ -288,14 +301,14 @@ def experiment(network_model, reshape_mode = 'mlp'):
         for s_d in sp_digits:
             s_d = utils.normalize_data(reshape_fun(s_d))
             d2_preds = merge_model.predict([s_d]*ensemble_size)
-            d2_mempreds = np.array(train_model.predict([s_d]*ensemble_size)).transpose(1,2,0)
+            d2_mempreds = np.array(list(map(lambda m : m.predict(s_d),model_list))).transpose(1,2,0)
             correct, wrong = bin_entropies(d2_preds, d2_mempreds, d2_labels)
             d2_correct.extend(correct)
             d2_wrong.extend(wrong)
 
         for d in digits:
             digits_preds = merge_model.predict([d]*ensemble_size)
-            mempreds = np.array(train_model.predict([d]*ensemble_size)).transpose(1,2,0)
+            mempreds = np.array(list(map(lambda m : m.predict(d),model_list))).transpose(1,2,0)
             correct, wrong = bin_entropies(digits_preds,mempreds,d_labels)
             digits_wrong.extend(wrong)
             digits_correct.extend(correct)

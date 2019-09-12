@@ -5,6 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import scipy.stats as stats
 from keras import callbacks as clb
+from keras.models import Sequential, Model
+import keras.layers as layers
+import keras.initializers as inits
+import keras.optimizers as opt
 
 network_model1 = '''
 {
@@ -226,7 +230,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
             model.add(layers.Dense(10, kernel_initializer = inits.RandomUniform(maxval=0.5,minval=-0.5)))
             model.add(layers.Activation("softmax"))
 
-            es = clb.EarlyStopping(monitor='val_loss',patience=10,restore_best_weights=True)
+            es = clb.EarlyStopping(monitor='val_loss',patience=5,restore_best_weights=True)
             model.compile(optimizer=opt.Adam(),loss="categorical_crossentropy",metrics=['acc'])
             model.fit(xtrain,ytrain,epochs=epochs,batch_size=100,validation_split=(1/6),callbacks=[es])
             model_list.append(model)
@@ -234,7 +238,7 @@ def experiment(network_model, reshape_mode = 'mlp'):
             inputs.extend(model.inputs)
             outputs.extend(model.outputs)
 
-            
+        merge_model = Model(inputs = inputs, outputs = layers.Average()(outputs))
 
         mnist_preds = merge_model.predict([xtest]*ensemble_size)
         mnist_mem_preds = np.array(list(map(lambda m : m.predict(xtest), model_list))).transpose(1,2,0)
